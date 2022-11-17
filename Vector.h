@@ -25,6 +25,7 @@ public:
 	void operator delete(void* ptr);
 
 	void Push(const T& value);
+	void Push(T&& value);
 	void Pop(T& value);
 
 	void Reserve(U64 capacity);
@@ -137,9 +138,17 @@ template<typename T> inline void Vector<T>::operator delete(void* ptr) { return 
 
 template<typename T> inline void Vector<T>::Push(const T& value)
 {
-	if (size == capacity) { Reserve((capacity + 1) << 1); }
+	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
 	array[size] = value;
+	++size;
+}
+
+template<typename T> inline void Vector<T>::Push(T&& value)
+{
+	if (size == capacity) { Reserve((capacity + 1) * 2); }
+
+	array[size] = Move(value);
 	++size;
 }
 
