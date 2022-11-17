@@ -27,6 +27,10 @@ public:
 	void Push(const T& value);
 	void Push(T&& value);
 	void Pop(T& value);
+	void Insert(U64 index, const T& value);
+	void Insert(U64 index, T&& value);
+	void EmplaceFront(const T& value);
+	void EmplaceFront(T&& value);
 
 	void Reserve(U64 capacity);
 	void Resize(U64 size, const T& value);
@@ -155,6 +159,26 @@ template<typename T> inline void Vector<T>::Push(T&& value)
 template<typename T> inline void Vector<T>::Pop(T& value)
 {
 	if (size) { value = array[--size]; }
+}
+
+template<typename T> inline void Vector<T>::Insert(U64 index, const T& value)
+{
+
+}
+
+template<typename T> inline void Vector<T>::Insert(U64 index, T&& value)
+{
+
+}
+
+template<typename T> inline void Vector<T>::EmplaceFront(const T& value)
+{
+
+}
+
+template<typename T> inline void Vector<T>::EmplaceFront(T&& value)
+{
+
 }
 
 template<typename T> inline void Vector<T>::Reserve(U64 capacity)

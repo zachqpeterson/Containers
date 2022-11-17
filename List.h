@@ -10,6 +10,7 @@ struct List
 	{
 		T value;
 		T* next;
+		T* prev;
 	};
 
 	struct Iterator
@@ -99,20 +100,23 @@ public:
 	void PopFront();
 	void Insert(U64 index, const T& value);
 	void Insert(U64 index, T&& value);
-	void Insert(Iterator& position, const T& value);
-	void Insert(Iterator& position, T&& value);
+	void InsertBack(Iterator& position, const T& value);
+	void InsertFront(Iterator& position, const T& value);
+	void InsertBack(Iterator& position, T&& value);
+	void InsertFront(Iterator& position, T&& value);
 	void Insert(U64 index, const List& other);
-	void Insert(Iterator& position, const List& other);
+	void InsertBack(Iterator& position, const List& other);
+	void InsertFront(Iterator& position, const List& other);
 	void Remove(U64 index);
 	void Remove(Iterator& position);
 	void Remove(Iterator& start, Iterator& end);
 	void RemoveAll(const T& value);
 
-	template<T... Args> PushBack(const Args&... args);
-	template<T... Args> PushFront(const Args&... args);
-	template<T... Args> Insert(U64 index, const Args&... args);
-	template<T... Args> Insert(Iterator& position, const Args&... args);
-	template<typename Predicate> RemoveIf(Predicate predicate);
+	template<T... Args> void PushBack(const Args&... args);
+	template<T... Args> void PushFront(const Args&... args);
+	template<T... Args> void Insert(U64 index, const Args&... args);
+	template<T... Args> void Insert(Iterator& position, const Args&... args);
+	template<typename Predicate> U64 RemoveIf(Predicate);
 
 	void Reverse();
 	void Splice(U64 index, List& other);
@@ -123,6 +127,8 @@ private:
 	U64 size;
 	T* head;
 	T* tail;
+
+	inline void EraseNode(Node* node);
 };
 
 template<typename T> inline List<T>::List() : size{ 0 }, head{ nullptr }, tail{ nullptr } {}
@@ -133,10 +139,8 @@ template<typename T> inline List<T>::List(const List<T>& other) : size{ other.si
 	Node* newNode = head;
 	while (node)
 	{
-		newNode = (Node*)malloc(sizeof(Node));
-		newNode->value = node->value;
-		node = node->next;
-		newNode = newNode->next;
+		PushBack(node->value);
+		node->next;
 	}
 }
 
@@ -152,13 +156,10 @@ template<typename T> inline List<T>& List<T>::operator=(const List<T>& other)
 	size = other.size;
 
 	Node* node = other.head;
-	Node* newNode = head;
 	while (node)
 	{
-		newNode = (Node*)malloc(sizeof(Node));
-		newNode->value = node->value;
-		node = node->next;
-		newNode = newNode->next;
+		PushBack(node->value);
+		node->next;
 	}
 }
 
@@ -205,50 +206,142 @@ template<typename T> inline void List<T>::operator delete(void* ptr)
 
 template<typename T> inline void List<T>::PushBack(const T& value)
 {
+	Node* newNode = (Node*)malloc(sizeof(Node));
+	newNode->value = value;
+	++size;
 
+	if (head)
+	{
+		tail->next = newNode;
+		newNode->prev = tail;
+	}
+	else { head = newNode; }
+
+	tail = newNode;
 }
 
 template<typename T> inline void List<T>::PushBack(T&& value)
 {
+	Node* newNode = (Node*)malloc(sizeof(Node));
+	newNode->value = Move(value);
+	++size;
 
+	if (head)
+	{
+		tail->next = newNode;
+		newNode->prev = tail;
+	}
+	else { head = newNode; }
+
+	tail = newNode;
 }
 
 template<typename T> inline void List<T>::PopBack()
 {
-
+	if (size)
+	{
+		Node* node = tail;
+		tail = tail->prev;
+		EraseNode(node);
+	}
 }
 
 template<typename T> inline void List<T>::PushFront(const T& value)
 {
+	Node* newNode = (Node*)malloc(sizeof(Node));
+	newNode->value = value;
+	++size;
 
+	if (head)
+	{
+		head->prev = newNode;
+		newNode->next = head;
+	}
+	else { tail = newNode; }
+
+	head = newNode;
 }
 
 template<typename T> inline void List<T>::PushFront(T&& value)
 {
+	Node* newNode = (Node*)malloc(sizeof(Node));
+	newNode->value = Move(value);
+	++size;
 
+	if (head)
+	{
+		head->prev = newNode;
+		newNode->next = head;
+	}
+	else { tail = newNode; }
+
+	head = newNode;
 }
 
 template<typename T> inline void List<T>::PopFront()
 {
-
+	if (size)
+	{
+		Node* node = head;
+		head = head->next;
+		EraseNode(node);
+	}
 }
 
 template<typename T> inline void List<T>::Insert(U64 index, const T& value)
 {
+	++size;
+	if (index == 0) { PushFront(value); }
+	else if (index == size) { PushBack(value); }
 
+	Node* node = head;
+	for (U64 i = 1; i < index; ++i) { node = node->next; }
+
+	Node* newNode = (Node*)malloc(sizeof(Node));
+	newNode->value = value;
+
+	node->next->prev = newNode;
+	newNode->next = node->next;
+	node->next = newNode;
+	newNode->prev = node;
 }
 
 template<typename T> inline void List<T>::Insert(U64 index, T&& value)
 {
+	++size;
+	if (index == 0) { PushFront(value); }
+	else if (index == size) { PushBack(value); }
+
+	Node* node = head;
+	for (U64 i = 1; i < index; ++i) { node = node->next; }
+
+	Node* newNode = (Node*)malloc(sizeof(Node));
+	newNode->value = Move(value);
+
+	node->next->prev = newNode;
+	newNode->next = node->next;
+	node->next = newNode;
+	newNode->prev = node;
+}
+
+template<typename T> inline void List<T>::InsertBack(Iterator& position, const T& value)
+{
+	Node* node = position->ptr;
+
 
 }
 
-template<typename T> inline void List<T>::Insert(Iterator& position, const T& value)
+template<typename T> inline void List<T>::InsertFront(Iterator& position, const T& value)
 {
 
 }
 
-template<typename T> inline void List<T>::Insert(Iterator& position, T&& value)
+template<typename T> inline void List<T>::InsertBack(Iterator& position, T&& value)
+{
+
+}
+
+template<typename T> inline void List<T>::InsertFront(Iterator& position, T&& value)
 {
 
 }
@@ -258,7 +351,12 @@ template<typename T> inline void List<T>::Insert(U64 index, const List<T>& other
 
 }
 
-template<typename T> inline void List<T>::Insert(Iterator& position, const List<T>& other)
+template<typename T> inline void List<T>::InsertBack(Iterator& position, const List<T>& other)
+{
+
+}
+
+template<typename T> inline void List<T>::InsertFront(Iterator& position, const List<T>& other)
 {
 
 }
@@ -303,9 +401,24 @@ template<typename T> template<T... Args> inline void List<T>::Insert(Iterator& p
 
 }
 
-template<typename T> template<typename Predicate> inline void List<T>::RemoveIf(Predicate predicate)
+template<typename T> template<typename Predicate> inline U64 List<T>::RemoveIf(Predicate predicate)
 {
+	U64 removed = 0;
 
+	for (Iterator it = begin(), last = end(); it != last;)
+	{
+		T& value = *it;
+
+		if (predicate(value))
+		{
+			++removed;
+			++it;
+			EraseNode(it.ptr);
+		}
+		else { ++it; }
+	}
+
+	return removed;
 }
 
 template<typename T> inline void List<T>::Reverse()
@@ -326,4 +439,16 @@ template<typename T> inline void List<T>::Splice(Iterator& position, List<T>& ot
 template<typename T> inline void List<T>::Merge(List<T>& other)
 {
 
+}
+
+
+template<typename T> inline void List<T>::EraseNode(Node* node)
+{
+	if (node->next) { node->next->prev = node->prev; }
+	else { tail = node->prev; }
+
+	if (node->prev) { node->prev->next = node->next; }
+	else { head = node->next; }
+
+	free(node);
 }
