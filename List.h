@@ -465,7 +465,10 @@ template<typename T> inline void List<T>::InsertFront(Iterator& position, List<T
 
 template<typename T> inline void List<T>::Remove(U64 index)
 {
+	Node* node = head;
+	for (U64 i = 0; i < index; ++i) { node = node->next; }
 
+	EraseNode(node);
 }
 
 template<typename T> inline void List<T>::Remove(Iterator& position)
@@ -553,4 +556,5 @@ template<typename T> inline void List<T>::EraseNode(Node* node)
 	else { head = node->next; }
 
 	free(node);
+	--size;
 }

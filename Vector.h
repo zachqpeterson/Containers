@@ -32,6 +32,7 @@ public:
 	void Insert(U64 index, T&& value);
 	void Insert(U64 index, const Vector& other);
 	void Insert(U64 index, Vector&& other);
+	void Remove(U64 index);
 
 	void Split(U64 index, Vector& other);
 	void Merge(const Vector& other);
@@ -208,6 +209,13 @@ template<typename T> inline void Vector<T>::Insert(U64 index, Vector<T>&& other)
 	size += other.size;
 
 	other.~Vector();
+}
+
+template<typename T> inline void Vector<T>::Remove(U64 index)
+{
+	memcpy(array + index, array + index + 1, sizeof(T) * (size - index));
+
+	--size;
 }
 
 template<typename T> inline void Vector<T>::Split(U64 index, Vector<T>& other)

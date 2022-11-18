@@ -13,8 +13,12 @@ int main()
 
 	/*** INIT TEST ***/
 
-	Vector<int> v{ 5, 5 };
-	Vector<int> v2{ 5, 3 };
+	List<int> v;
+	v.PushBack(0);
+	v.PushBack(1);
+	v.PushBack(2);
+	v.PushBack(3);
+	v.PushBack(4);
 
 	/*** END INIT TEST ***/
 
@@ -23,7 +27,7 @@ int main()
 
 	/*** START TEST ***/
 
-	v += Move(v2);
+	v.Remove(3);
 
 	/*** END TEST ***/
 
