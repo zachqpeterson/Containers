@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <vector>
+#include <list>
 
 int main()
 {
@@ -13,12 +14,7 @@ int main()
 
 	/*** INIT TEST ***/
 
-	List<int> v;
-	v.PushBack(0);
-	v.PushBack(1);
-	v.PushBack(2);
-	v.PushBack(3);
-	v.PushBack(4);
+
 
 	/*** END INIT TEST ***/
 
@@ -27,7 +23,7 @@ int main()
 
 	/*** START TEST ***/
 
-	v.Remove(3);
+
 
 	/*** END TEST ***/
 
@@ -36,7 +32,7 @@ int main()
 
 	/*** VALIDATE TEST ***/
 
-	for (int i : v) { printf("%d\n", i); }
+
 
 	/*** END VALIDATE TEST ***/
 
