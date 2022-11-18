@@ -13,10 +13,10 @@ public:
 	Vector(U64 size, const T& value);
 	Vector(const Vector& other);
 	Vector(Vector&& other);
-	Vector(T newArray[]);
+	Vector(T* newArray);
 	Vector& operator=(const Vector& other);
 	Vector& operator=(Vector&& other);
-	Vector& operator=(T newArray[]);
+	Vector& operator=(T* newArray);
 	template<T... Args> constexpr Vector(const Initializer<T, Args...>& init);
 	template<T... Args> constexpr Vector& operator=(const Initializer<T, Args...>& init);
 
@@ -42,6 +42,8 @@ public:
 
 	void Reserve(U64 capacity);
 	void Resize(U64 size, const T& value);
+	void Resize(U64 size);
+	void Clear() { size = 0; }
 
 	bool Contains(const T& value) const;
 	U64 HowMany(const T& value) const;
@@ -55,6 +57,10 @@ public:
 	const T& operator[](U64 i) const { return array[i]; }
 	T& operator[](U64 i) { return array[i]; }
 
+	T& Front() { return *array; }
+	const T& Front() const { return *array; }
+	T& Back() { return array[size - 1]; }
+	const T& Back() const { return array[size - 1]; }
 	T* begin() { return array; }
 	T* end() { return array + size; }
 	const T* begin() const { return array; }
@@ -87,10 +93,7 @@ template<typename T> inline Vector<T>::Vector(Vector<T>&& other) : size{ other.s
 	other.capacity = 0;
 }
 
-template<typename T> inline Vector<T>::Vector(T newArray[]) : size{ sizeof(array) }, capacity{ size }, array{ (T*)malloc(sizeof(T) * capacity) }
-{
-	memcpy(array, newArray, sizeof(T) * capacity);
-}
+template<typename T> inline Vector<T>::Vector(T* newArray) : size{ sizeof(array) }, capacity{ size }, array{ newArray } {}
 
 template<typename T> inline Vector<T>& Vector<T>::operator=(const Vector<T>& other)
 {
@@ -118,13 +121,12 @@ template<typename T> inline Vector<T>& Vector<T>::operator=(Vector<T>&& other)
 	return *this;
 }
 
-template<typename T> inline Vector<T>& Vector<T>::operator=(T newArray[])
+template<typename T> inline Vector<T>& Vector<T>::operator=(T* newArray)
 {
 	if (array) { free(array); }
 	size = sizeof(newArray);
 	capacity = size;
-	array = (T*)malloc(sizeof(T) * capacity);
-	memcpy(array, newArray, sizeof(T) * capacity);
+	array = newArray;
 
 	return *this;
 }
@@ -283,10 +285,15 @@ template<typename T> inline void Vector<T>::Resize(U64 size, const T& value)
 	T* temp = (T*)realloc(array, sizeof(T) * capacity);
 	array = temp ? temp : (T*)malloc(capacity);
 
-	for (U64 i = 0; i < size; ++i)
-	{
-		array[i] = value;
-	}
+	for (U64 i = 0; i < size; ++i) { array[i] = value; }
+}
+
+template<typename T> inline void Vector<T>::Resize(U64 size)
+{
+	capacity = size;
+	this->size = size;
+	T* temp = (T*)realloc(array, sizeof(T) * capacity);
+	array = temp ? temp : (T*)malloc(capacity);
 }
 
 template<typename T> inline bool Vector<T>::Contains(const T& value) const
