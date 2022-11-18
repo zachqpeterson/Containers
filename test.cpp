@@ -1,4 +1,5 @@
 #include "Vector.h"
+#include "List.h"
 #include "Initiazer.h"
 
 #include <Windows.h>
@@ -11,7 +12,7 @@ int main()
 
 	/*** INIT TEST ***/
 
-
+	Vector<int> v;
 
 	/*** END INIT TEST ***/
 
@@ -20,7 +21,7 @@ int main()
 
 	/*** START TEST ***/
 
-
+	for (int i = 0; i < 100000; ++i) { v.Insert(i, i); }
 
 	/*** END TEST ***/
 

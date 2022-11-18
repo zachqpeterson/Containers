@@ -29,8 +29,12 @@ public:
 	void Pop(T& value);
 	void Insert(U64 index, const T& value);
 	void Insert(U64 index, T&& value);
-	void EmplaceFront(const T& value);
-	void EmplaceFront(T&& value);
+	void Insert(U64 index, const Vector& other);
+	void Insert(U64 index, Vector&& other);
+
+	void Split(U64 index, Vector& other);
+	void Merge(const Vector& other);
+	void Merge(Vector&& other);
 
 	void Reserve(U64 capacity);
 	void Resize(U64 size, const T& value);
@@ -38,6 +42,7 @@ public:
 	bool Contains(const T& value) const;
 	U64 HowMany(const T& value) const;
 	U64 Find(const T& value) const;
+
 	const U64& Size() const { return size; }
 	const U64& Capacity() const { return capacity; }
 	const T* Data() const { return array; }
@@ -163,20 +168,43 @@ template<typename T> inline void Vector<T>::Pop(T& value)
 
 template<typename T> inline void Vector<T>::Insert(U64 index, const T& value)
 {
+	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
+	memcpy(array + index + 1, array + index, sizeof(T) * (size - index));
+	array[index] = value;
+	++size;
 }
 
 template<typename T> inline void Vector<T>::Insert(U64 index, T&& value)
 {
+	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
+	memcpy(array + index + 1, array + index, sizeof(T) * (size - index));
+	array[index] = Move(value);
+	++size;
 }
 
-template<typename T> inline void Vector<T>::EmplaceFront(const T& value)
+template<typename T> inline void Vector<T>::Insert(U64 index, const Vector& other)
 {
 
 }
 
-template<typename T> inline void Vector<T>::EmplaceFront(T&& value)
+template<typename T> inline void Vector<T>::Insert(U64 index, Vector&& other)
+{
+
+}
+
+template<typename T> inline void Vector<T>::Split(U64 index, Vector& other)
+{
+
+}
+
+template<typename T> inline void Vector<T>::Merge(const Vector& other)
+{
+
+}
+
+template<typename T> inline void Vector<T>::Merge(Vector&& other)
 {
 
 }
