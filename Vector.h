@@ -12,15 +12,15 @@ public:
 	Vector(U64 size, const T& value);
 	Vector(const Vector& other);
 	Vector(Vector&& other);
-	Vector(T array[]);
+	Vector(T newArray[]);
 	Vector& operator=(const Vector& other);
 	Vector& operator=(Vector&& other);
-	Vector& operator=(T array[]);
+	Vector& operator=(T newArray[]);
 	template<T... Args> constexpr Vector(const Initializer<T, Args...>& init);
 	template<T... Args> constexpr Vector& operator=(const Initializer<T, Args...>& init);
 
 	~Vector();
-	void Destroy();
+	inline void Destroy();
 	void* operator new(U64 size);
 	void operator delete(void* ptr);
 
@@ -35,6 +35,8 @@ public:
 	void Split(U64 index, Vector& other);
 	void Merge(const Vector& other);
 	void Merge(Vector&& other);
+	Vector& operator+=(const Vector& other);
+	Vector& operator+=(Vector&& other);
 
 	void Reserve(U64 capacity);
 	void Resize(U64 size, const T& value);
@@ -83,13 +85,14 @@ template<typename T> inline Vector<T>::Vector(Vector<T>&& other) : size{ other.s
 	other.capacity = 0;
 }
 
-template<typename T> inline Vector<T>::Vector(T array[]) : size{ sizeof(array) }, capacity{ size }, array{ (T*)malloc(sizeof(T) * capacity) }
+template<typename T> inline Vector<T>::Vector(T newArray[]) : size{ sizeof(array) }, capacity{ size }, array{ (T*)malloc(sizeof(T) * capacity) }
 {
-	memcpy(this->array, array, sizeof(T) * capacity);
+	memcpy(array, newArray, sizeof(T) * capacity);
 }
 
 template<typename T> inline Vector<T>& Vector<T>::operator=(const Vector<T>& other)
 {
+	if (array) { free(array); }
 	size = other.size;
 	capacity = other.capacity;
 	array = (T*)malloc(sizeof(T) * capacity);
@@ -101,6 +104,7 @@ template<typename T> inline Vector<T>& Vector<T>::operator=(const Vector<T>& oth
 
 template<typename T> inline Vector<T>& Vector<T>::operator=(Vector<T>&& other)
 {
+	if (array) { free(array); }
 	size = other.size;
 	capacity = other.capacity;
 	array = other.array;
@@ -112,12 +116,13 @@ template<typename T> inline Vector<T>& Vector<T>::operator=(Vector<T>&& other)
 	return *this;
 }
 
-template<typename T> inline Vector<T>& Vector<T>::operator=(T array[])
+template<typename T> inline Vector<T>& Vector<T>::operator=(T newArray[])
 {
-	size = sizeof(array);
+	if (array) { free(array); }
+	size = sizeof(newArray);
 	capacity = size;
 	array = (T*)malloc(sizeof(T) * capacity);
-	memcpy(this->array, array, sizeof(T) * capacity);
+	memcpy(array, newArray, sizeof(T) * capacity);
 
 	return *this;
 }
@@ -137,7 +142,7 @@ template<typename T> template<T... Args> inline constexpr Vector<T>& Vector<T>::
 	memcpy(array, init.list, sizeof(T) * size);
 }
 
-template<typename T> inline Vector<T>::~Vector() { free(array); }
+template<typename T> inline Vector<T>::~Vector() { size = 0; capacity = 0; free(array); array = nullptr; }
 
 template<typename T> inline void Vector<T>::Destroy() { ~Vector(); }
 
@@ -184,29 +189,74 @@ template<typename T> inline void Vector<T>::Insert(U64 index, T&& value)
 	++size;
 }
 
-template<typename T> inline void Vector<T>::Insert(U64 index, const Vector& other)
+template<typename T> inline void Vector<T>::Insert(U64 index, const Vector<T>& other)
 {
+	if (size + other.size > capacity) { Reserve(size + other.size); }
 
+	memcpy(array + index + other.size, array + index, sizeof(T) * (size - index));
+	memcpy(array + index, other.array, sizeof(T) * (other.size));
+	size += other.size;
 }
 
-template<typename T> inline void Vector<T>::Insert(U64 index, Vector&& other)
+template<typename T> inline void Vector<T>::Insert(U64 index, Vector<T>&& other)
 {
+	if (size + other.size > capacity) { Reserve(size + other.size); }
 
+	memcpy(array + index + other.size, array + index, sizeof(T) * (size - index));
+	memcpy(array + index, other.array, sizeof(T) * (other.size));
+	size += other.size;
+
+	other.~Vector();
 }
 
-template<typename T> inline void Vector<T>::Split(U64 index, Vector& other)
+template<typename T> inline void Vector<T>::Split(U64 index, Vector<T>& other)
 {
+	other.Reserve(size - index + 1);
+	other.size = other.capacity;
 
+	memcpy(other.array, array + index - 1, sizeof(T) * (other.size));
+
+	size -= index;
 }
 
-template<typename T> inline void Vector<T>::Merge(const Vector& other)
+template<typename T> inline void Vector<T>::Merge(const Vector<T>& other)
 {
+	if (size + other.size > capacity) { Reserve(size + other.size); }
 
+	memcpy(array + size, other.array, sizeof(T) * (other.size));
+	size += other.size;
 }
 
-template<typename T> inline void Vector<T>::Merge(Vector&& other)
+template<typename T> inline void Vector<T>::Merge(Vector<T>&& other)
 {
+	if (size + other.size > capacity) { Reserve(size + other.size); }
 
+	memcpy(array + size, other.array, sizeof(T) * (other.size));
+	size += other.size;
+
+	other.~Vector();
+}
+
+template<typename T> inline Vector<T>& Vector<T>::operator+=(const Vector<T>& other)
+{
+	if (size + other.size > capacity) { Reserve(size + other.size); }
+
+	memcpy(array + size, other.array, sizeof(T) * (other.size));
+	size += other.size;
+
+	return *this;
+}
+
+template<typename T> inline Vector<T>& Vector<T>::operator+=(Vector<T>&& other)
+{
+	if (size + other.size > capacity) { Reserve(size + other.size); }
+
+	memcpy(array + size, other.array, sizeof(T) * (other.size));
+	size += other.size;
+
+	other.~Vector();
+
+	return *this;
 }
 
 template<typename T> inline void Vector<T>::Reserve(U64 capacity)

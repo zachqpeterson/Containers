@@ -12,7 +12,8 @@ int main()
 
 	/*** INIT TEST ***/
 
-	Vector<int> v;
+	Vector<int> v{ 5, 5 };
+	Vector<int> v2{ 5, 3 };
 
 	/*** END INIT TEST ***/
 
@@ -21,7 +22,7 @@ int main()
 
 	/*** START TEST ***/
 
-	for (int i = 0; i < 100000; ++i) { v.Insert(i, i); }
+	v += Move(v2);
 
 	/*** END TEST ***/
 
@@ -30,7 +31,7 @@ int main()
 
 	/*** VALIDATE TEST ***/
 
-
+	for (int i : v) { printf("%d\n", i); }
 
 	/*** END VALIDATE TEST ***/
 
