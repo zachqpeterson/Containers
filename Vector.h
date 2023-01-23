@@ -12,12 +12,11 @@ public:
 	Vector(U64 capacity);
 	Vector(U64 size, const T& value);
 	Vector(const Vector& other);
-	Vector(Vector&& other);
-	Vector(T* newArray);
-	Vector& operator=(const Vector& other);
-	Vector& operator=(Vector&& other);
-	Vector& operator=(T* newArray);
+	Vector(Vector&& other) noexcept;
 	template<T... Args> constexpr Vector(const Initializer<T, Args...>& init);
+
+	Vector& operator=(const Vector& other);
+	Vector& operator=(Vector&& other) noexcept;
 	template<T... Args> constexpr Vector& operator=(const Initializer<T, Args...>& init);
 
 	~Vector();
@@ -26,19 +25,21 @@ public:
 	void operator delete(void* ptr);
 
 	void Push(const T& value);
-	void Push(T&& value);
+	void Push(T&& value) noexcept;
+	void Pop();
 	void Pop(T& value);
+	void Pop(T&& value) noexcept;
 	void Insert(U64 index, const T& value);
-	void Insert(U64 index, T&& value);
+	void Insert(U64 index, T&& value) noexcept;
 	void Insert(U64 index, const Vector& other);
-	void Insert(U64 index, Vector&& other);
+	void Insert(U64 index, Vector&& other) noexcept;
 	void Remove(U64 index);
 
 	void Split(U64 index, Vector& other);
 	void Merge(const Vector& other);
-	void Merge(Vector&& other);
+	void Merge(Vector&& other) noexcept;
 	Vector& operator+=(const Vector& other);
-	Vector& operator+=(Vector&& other);
+	Vector& operator+=(Vector&& other) noexcept;
 
 	void Reserve(U64 capacity);
 	void Resize(U64 size, const T& value);
@@ -83,17 +84,21 @@ template<typename T> inline Vector<T>::Vector(U64 size, const T& value) : size{ 
 
 template<typename T> inline Vector<T>::Vector(const Vector<T>& other) : size{ other.size }, capacity{ other.capacity }, array{ (T*)malloc(sizeof(T) * capacity) }
 {
-	memcpy(array, other.array, sizeof(T) * size);
+	memcpy(array, other.array, sizeof(T)* size);
 }
 
-template<typename T> inline Vector<T>::Vector(Vector<T>&& other) : size{ other.size }, capacity{ other.capacity }, array{ other.array }
+template<typename T> inline Vector<T>::Vector(Vector<T>&& other) noexcept : size{ other.size }, capacity{ other.capacity }, array{ other.array }
 {
 	other.array = nullptr;
 	other.size = 0;
 	other.capacity = 0;
 }
 
-template<typename T> inline Vector<T>::Vector(T* newArray) : size{ sizeof(array) }, capacity{ size }, array{ newArray } {}
+template<typename T> template<T... Args> inline constexpr Vector<T>::Vector(const Initializer<T, Args...>& init) :
+	size{ init.size }, capacity{ size }, array{ (T*)malloc(sizeof(T) * capacity) }
+{
+	memcpy(array, init.list, sizeof(T)* size);
+}
 
 template<typename T> inline Vector<T>& Vector<T>::operator=(const Vector<T>& other)
 {
@@ -107,7 +112,7 @@ template<typename T> inline Vector<T>& Vector<T>::operator=(const Vector<T>& oth
 	return *this;
 }
 
-template<typename T> inline Vector<T>& Vector<T>::operator=(Vector<T>&& other)
+template<typename T> inline Vector<T>& Vector<T>::operator=(Vector<T>&& other) noexcept
 {
 	if (array) { free(array); }
 	size = other.size;
@@ -121,22 +126,6 @@ template<typename T> inline Vector<T>& Vector<T>::operator=(Vector<T>&& other)
 	return *this;
 }
 
-template<typename T> inline Vector<T>& Vector<T>::operator=(T* newArray)
-{
-	if (array) { free(array); }
-	size = sizeof(newArray);
-	capacity = size;
-	array = newArray;
-
-	return *this;
-}
-
-template<typename T> template<T... Args> inline constexpr Vector<T>::Vector(const Initializer<T, Args...>& init) :
-	size{ init.size }, capacity{ size }, array{ (T*)malloc(sizeof(T) * capacity) }
-{
-	memcpy(array, init.list, sizeof(T) * size);
-}
-
 template<typename T> template<T... Args> inline constexpr Vector<T>& Vector<T>::operator=(const Initializer<T, Args...>& init)
 {
 	free(array);
@@ -146,13 +135,13 @@ template<typename T> template<T... Args> inline constexpr Vector<T>& Vector<T>::
 	memcpy(array, init.list, sizeof(T) * size);
 }
 
-template<typename T> inline Vector<T>::~Vector() { size = 0; capacity = 0; free(array); array = nullptr; }
+template<typename T> inline Vector<T>::~Vector() { Destroy(); }
 
-template<typename T> inline void Vector<T>::Destroy() { ~Vector(); }
+template<typename T> inline void Vector<T>::Destroy() { size = 0; capacity = 0; if (array) { free(array); } array = nullptr; }
 
 template<typename T> inline void* Vector<T>::operator new(U64 size) { return malloc(size); }
 
-template<typename T> inline void Vector<T>::operator delete(void* ptr) { return free(ptr); }
+template<typename T> inline void Vector<T>::operator delete(void* ptr) { free(ptr); }
 
 template<typename T> inline void Vector<T>::Push(const T& value)
 {
@@ -162,7 +151,7 @@ template<typename T> inline void Vector<T>::Push(const T& value)
 	++size;
 }
 
-template<typename T> inline void Vector<T>::Push(T&& value)
+template<typename T> inline void Vector<T>::Push(T&& value) noexcept
 {
 	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
@@ -184,7 +173,7 @@ template<typename T> inline void Vector<T>::Insert(U64 index, const T& value)
 	++size;
 }
 
-template<typename T> inline void Vector<T>::Insert(U64 index, T&& value)
+template<typename T> inline void Vector<T>::Insert(U64 index, T&& value) noexcept
 {
 	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
@@ -202,7 +191,7 @@ template<typename T> inline void Vector<T>::Insert(U64 index, const Vector<T>& o
 	size += other.size;
 }
 
-template<typename T> inline void Vector<T>::Insert(U64 index, Vector<T>&& other)
+template<typename T> inline void Vector<T>::Insert(U64 index, Vector<T>&& other) noexcept
 {
 	if (size + other.size > capacity) { Reserve(size + other.size); }
 
@@ -238,7 +227,7 @@ template<typename T> inline void Vector<T>::Merge(const Vector<T>& other)
 	size += other.size;
 }
 
-template<typename T> inline void Vector<T>::Merge(Vector<T>&& other)
+template<typename T> inline void Vector<T>::Merge(Vector<T>&& other) noexcept
 {
 	if (size + other.size > capacity) { Reserve(size + other.size); }
 
@@ -258,7 +247,7 @@ template<typename T> inline Vector<T>& Vector<T>::operator+=(const Vector<T>& ot
 	return *this;
 }
 
-template<typename T> inline Vector<T>& Vector<T>::operator+=(Vector<T>&& other)
+template<typename T> inline Vector<T>& Vector<T>::operator+=(Vector<T>&& other) noexcept
 {
 	if (size + other.size > capacity) { Reserve(size + other.size); }
 

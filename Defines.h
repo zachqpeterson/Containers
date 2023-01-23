@@ -13,6 +13,22 @@ typedef signed int I32;
 typedef signed short I16;
 typedef signed char I8;
 
+typedef float F32;
+typedef double F64;
+
+#if _MSC_VER
+#include <intrin.h>
+#define debugBreak() __debugbreak()
+#else
+#define debugBreak() __builtin_trap()
+#endif
+
+#define ASSERT(expr)		\
+{							\
+	if (expr) {}			\
+	else { debugBreak(); }	\
+}
+
 template<typename T>
 constexpr T&& Move(T&& t) noexcept
 {

@@ -138,7 +138,9 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="Queue.h" />
     <ClInclude Include="Stack.h" />
+    <ClInclude Include="String.h" />
     <ClInclude Include="Vector.h" />
+    <ClInclude Include="WideString.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />
