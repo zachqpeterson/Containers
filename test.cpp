@@ -26,9 +26,13 @@ constexpr char len = Length(__FUNCTION__);												\
 char name[len + 2] = __FUNCTION__;														\
 name[len] = ':';																		\
 name[len + 1] = '\0';																	\
-printf("%-30s %s  |  Time taken: %fs\n", name, passed ? "\033[32mPASSED\033[0m" : "\033[31mFAILED\033[0m", time);
+printf("%-35s %s  |  Time taken: %fs\n", name, passed ? "\033[32mPASSED\033[0m" : "\033[31mFAILED\033[0m", time);
 
 LARGE_INTEGER freq;
+
+bool Pred0(U64 i) { return i == 2; }
+
+bool Pred1(U64 i) { return i < 5; }
 
 #pragma region VectorTests
 void VectorInit_Blank()
@@ -834,6 +838,127 @@ void VectorAdd_Move()
 	END_TEST
 }
 
+void VectorPredicate_SearchFor()
+{
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Vector<U64> v0(5, 1);
+	v0.Push(2);
+	v0.Push(1);
+	v0.Push(2);
+	v0.Push(2);
+	v0.Push(1);
+	Vector<U64> v1;
+
+	v0.SearchFor(Pred0, v1);
+
+	passed = v0.Size() == 10, v0.Capacity() >= v0.Size() && v1.Size() == 3 && v1.Capacity() == v0.Size() && v0.Data() && v1.Data();
+
+	for (U64 i : v1) { passed &= i == 2; }
+
+	/*** END TEST ***/
+
+	END_TEST
+}
+
+void VectorPredicate_SearchForIndices()
+{
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Vector<U64> v0(5, 1);
+	v0.Push(2);
+	v0.Push(1);
+	v0.Push(2);
+	v0.Push(2);
+	v0.Push(1);
+	Vector<U64> v1;
+
+	v0.SearchForIndices(Pred0, v1);
+
+	passed = v0.Size() == 10, v0.Capacity() >= v0.Size() && v1.Size() == 3 && v1.Capacity() == v0.Size() && v0.Data() && v1.Data() &&
+		v1[0] == 5 && v1[1] == 7 && v1[2] == 8;
+
+	/*** END TEST ***/
+
+	END_TEST
+}
+
+void VectorPredicate_SearchCount()
+{
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Vector<U64> v0(5, 1);
+	v0.Push(2);
+	v0.Push(1);
+	v0.Push(2);
+	v0.Push(2);
+	v0.Push(1);
+
+	U64 i = v0.SearchCount(Pred0);
+
+	passed = v0.Size() == 10 && v0.Capacity() >= v0.Size() && v0.Data() && i == 3;
+
+	/*** END TEST ***/
+
+	END_TEST
+}
+
+void VectorPredicate_RemoveAll()
+{
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Vector<U64> v0(5, 1);
+	v0.Push(2);
+	v0.Push(1);
+	v0.Push(2);
+	v0.Push(2);
+	v0.Push(1);
+
+	U64 i = v0.RemoveAll(Pred0);
+
+	passed = v0.Size() == 7 && v0.Capacity() >= v0.Size() && v0.Data() && i == 3;
+
+	for (U64 i : v0) { passed &= i == 1; }
+
+	/*** END TEST ***/
+
+	END_TEST
+}
+
+void VectorPredicate_RemoveAll_Other()
+{
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Vector<U64> v0(5, 1);
+	v0.Push(2);
+	v0.Push(1);
+	v0.Push(2);
+	v0.Push(2);
+	v0.Push(1);
+	Vector<U64> v1;
+
+	v0.RemoveAll(Pred0, v1);
+
+	passed = v0.Size() == 7 && v0.Capacity() >= v0.Size() && v0.Data() && v1.Size() == 3 && v1.Capacity() == 10 && v1.Data();
+
+	for (U64 i : v0) { passed &= i == 1; }
+	for (U64 i : v1) { passed &= i == 2; }
+
+	/*** END TEST ***/
+
+	END_TEST
+}
+
 void VectorReserve()
 {
 	BEGIN_TEST;
@@ -1106,6 +1231,11 @@ int main()
 	VectorMerge_Move();
 	VectorAdd_Copy();
 	VectorAdd_Move();
+	VectorPredicate_SearchFor();
+	VectorPredicate_SearchForIndices();
+	VectorPredicate_SearchCount();
+	VectorPredicate_RemoveAll();
+	VectorPredicate_RemoveAll_Other();
 	VectorReserve();
 	VectorResize();
 	VectorResize_Value();

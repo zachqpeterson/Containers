@@ -4,6 +4,34 @@
 #include "Allocator.h"
 #include "Initiazer.h"
 
+/*
+* TODO: Variatic Templates
+*	Insert
+*	Merge
+*	Add
+*
+* TODO: Initializer
+*	Insert
+*	Merge
+*	Add
+*
+* TODO: Sorting
+*	Comparison Predicate
+* 
+* TODO: Comparison
+*	Compare two Vectors, return true if matching
+*	Compare two Vectors, return count of matching
+*	Compare two Vectors, return Vector<T> of matching
+*	Compare two Vectors, remove matching, return count
+*	Compare two Vectors, merge all unique values
+* 
+* TODO: Insertion
+*	Push value if unique
+*	Insert value if unique
+* 
+* TODO: Remove
+*	Search, remove all non-unique values
+*/
 template<typename T>
 struct Vector
 {
@@ -69,6 +97,8 @@ public:
 	/// <returns>Reference to this</returns>
 	template<T... Args> constexpr Vector& operator=(const Initializer<T, Args...>& init);
 
+
+
 	~Vector();
 
 	/// <summary>
@@ -88,6 +118,8 @@ public:
 	/// </summary>
 	/// <param name="ptr:">Pointer to a Vector instance</param>
 	void operator delete(void* ptr);
+
+
 
 	/// <summary>
 	/// Increases size by one and puts value onto the back of array, reallocates array if it's too small
@@ -183,6 +215,8 @@ public:
 	/// <param name="other:">The Vector to copy to</param>
 	void Erase(U64 index0, U64 index1, Vector& other);
 
+
+
 	/// <summary>
 	/// Splits the array at index, copies data at and past index into other
 	/// WARNING: any previous data in other will be lost
@@ -219,6 +253,48 @@ public:
 	/// <returns>Reference to this</returns>
 	Vector& operator+=(Vector&& other) noexcept;
 
+
+
+	/// <summary>
+	/// Searches array, finds all values that satisfy predicate, fill other with those values
+	/// WARNING: any previous data in other will be lost
+	/// </summary>
+	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
+	/// <param name="other:">A Vector to fill with values</param>
+	template<typename Predicate> void SearchFor(Predicate predicate, Vector& other);
+
+	/// <summary>
+	/// Searches array, finds indices of all values that satisfy predicate, fill other with those indices
+	/// WARNING: any previous data in other will be lost
+	/// </summary>
+	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
+	/// <param name="other:">A Vector to fill with indices</param>
+	template<typename Predicate> void SearchForIndices(Predicate predicate, Vector<U64>& other);
+
+	/// <summary>
+	/// Searches array, finds all values that satisfy predicate
+	/// </summary>
+	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
+	/// <returns>The count of values that satisfy predicate</returns>
+	template<typename Predicate> U64 SearchCount(Predicate predicate);
+
+	/// <summary>
+	/// Searches array, finds all values that satisfy predicate, removes them from array
+	/// </summary>
+	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
+	/// <returns>The count of values that satisfy predicate</returns>
+	template<typename Predicate> U64 RemoveAll(Predicate predicate);
+
+	/// <summary>
+	/// Searches array, finds all values that satisfy predicate, removes them from array and puts them into other
+	/// WARNING: any previous data in other will be lost
+	/// </summary>
+	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
+	/// <param name="other:">A Vector to fill with values</param>
+	template<typename Predicate> void RemoveAll(Predicate predicate, Vector& other);
+	
+
+
 	/// <summary>
 	/// Reallocates the array to be sizeof(T) * capacity
 	/// </summary>
@@ -248,6 +324,8 @@ public:
 	/// </summary>
 	void Clear() { size = 0; }
 
+
+
 	/// <summary>
 	/// Searches array for value
 	/// </summary>
@@ -269,6 +347,8 @@ public:
 	/// <returns>The index of value, if it doesn't find value, U64_MAX</returns>
 	U64 Find(const T& value) const;
 
+
+
 	/// <summary></summary>
 	/// <returns>size</returns>
 	const U64& Size() const { return size; }
@@ -284,6 +364,8 @@ public:
 	/// <summary></summary>
 	/// <returns>array</returns>
 	T* Data() { return array; }
+
+
 
 	/// <summary></summary>
 	/// <param name="i:">Index</param>
@@ -337,7 +419,7 @@ public:
 
 private:
 	/// <summary>
-	/// The size of array that a user can access
+	/// The count of values inside array
 	/// </summary>
 	U64 size;
 
@@ -582,9 +664,82 @@ template<typename T> inline Vector<T>& Vector<T>::operator+=(Vector<T>&& other) 
 	return *this;
 }
 
+template<typename T> template<typename Predicate> inline void Vector<T>::SearchFor(Predicate predicate, Vector<T>& other)
+{
+	other.Reserve(size);
+	other.size = 0;
+
+	for (T* t = array, *end = array + size; t != end; ++t)
+	{
+		if (predicate(*t)) { other.Push(*t); }
+	}
+}
+
+template<typename T> template<typename Predicate> inline void Vector<T>::SearchForIndices(Predicate predicate, Vector<U64>& other)
+{
+	other.Reserve(size);
+	other.size = 0;
+
+	U64 i = 0;
+	for (T* t = array, *end = array + size; t != end; ++t, ++i)
+	{
+		if (predicate(*t)) { other.Push(i); }
+	}
+}
+
+template<typename T> template<typename Predicate> inline U64 Vector<T>::SearchCount(Predicate predicate)
+{
+	U64 i = 0;
+	for (T* t = array, *end = array + size; t != end; ++t)
+	{
+		if (predicate(*t)) { ++i; } //TODO: test i += predicate(*t);
+	}
+
+	return i;
+}
+
+template<typename T> template<typename Predicate> inline U64 Vector<T>::RemoveAll(Predicate predicate)
+{
+	T* last = array + size;
+
+	U64 i = 0;
+	for (T* t = array, *end = array + size; t != end;)
+	{
+		if (predicate(*t))
+		{
+			++i;
+			memcpy(t, t + 1, sizeof(T) * (last - t - 1));
+			--size;
+		}
+		else { ++t; }
+	}
+
+	return i;
+}
+
+template<typename T> template<typename Predicate> inline void Vector<T>::RemoveAll(Predicate predicate, Vector<T>& other)
+{
+	T* last = array + size;
+
+	other.Reserve(size);
+	other.size = 0;
+
+	for (T* t = array, *end = array + size; t != end;)
+	{
+		if (predicate(*t))
+		{
+			other.Push(*t);
+			memcpy(t, t + 1, sizeof(T) * (last - t - 1));
+
+			--size;
+		}
+		else { ++t; }
+	}
+}
+
 template<typename T> inline void Vector<T>::Reserve(U64 capacity)
 {
-	array = (T*)realloc(array, sizeof(T) * capacity); 
+	array = (T*)realloc(array, sizeof(T) * capacity);
 	this->capacity = capacity;
 }
 
@@ -605,9 +760,7 @@ template<typename T> inline void Vector<T>::Resize(U64 size, const T& value)
 template<typename T> inline void Vector<T>::Shrink()
 {
 	capacity = size;
-
-	//TODO: This seems slow
-	array = (T*)realloc(array, sizeof(T) * capacity);
+	array = (T*)realloc(array, sizeof(T*) * capacity);
 }
 
 template<typename T> inline bool Vector<T>::Contains(const T& value) const
