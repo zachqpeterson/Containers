@@ -557,8 +557,10 @@ template<typename T> inline void Vector<T>::Insert(U64 index, const Vector<T>& o
 {
 	if (size + other.size > capacity) { Reserve(size + other.size); }
 
+	//TODO: Doesn't work in release mode
 	memcpy(array + index + other.size, array + index, sizeof(T) * (size - index));
 	memcpy(array + index, other.array, sizeof(T) * (other.size));
+
 	size += other.size;
 }
 
@@ -566,6 +568,7 @@ template<typename T> inline void Vector<T>::Insert(U64 index, Vector<T>&& other)
 {
 	if (size + other.size > capacity) { Reserve(size + other.size); }
 
+	//TODO: Doesn't work in release mode
 	memcpy(array + index + other.size, array + index, sizeof(T) * (size - index));
 	memcpy(array + index, other.array, sizeof(T) * (other.size));
 	size += other.size;
