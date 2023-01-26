@@ -518,22 +518,11 @@ void VectorInsert_CopyVector()
 	/*** START TEST ***/
 
 	Vector<I32> v0(10, 1);
-	//for (I32 i = 1; i <= 10; ++i) { v0.Push(1); }
 	Vector<I32> v1(10, 2);
 	Vector<I32> v2(10, 3);
 	Vector<I32> v3(10, 4);
 
-	printf("%d\n", v0.Size());
-	printf("%d\n", v0.Capacity());
-
-	//for (I32 i : v0) { printf("%d", i); }
-	printf("\n");
 	v0.Insert(5, v1);
-	//for (I32 i : v0) { printf("%d", i); }
-	printf("\n");
-
-	printf("%d\n", v0.Size());
-	printf("%d\n", v0.Capacity());
 
 	passed = v0.Size() == 20 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data();
@@ -543,11 +532,6 @@ void VectorInsert_CopyVector()
 	for (I32 i = 15; i < 20; ++i) { passed &= v0[i] == 1; }
 
 	v0.Insert(0, v2);
-	//for (I32 i : v0) { printf("%d", i); }
-	printf("\n");
-
-	printf("%d\n", v0.Size());
-	printf("%d\n", v0.Capacity());
 
 	passed &= v0.Size() == 30 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v2.Size() == 10 && v2.Capacity() == 10 && v2.Data();
@@ -558,11 +542,6 @@ void VectorInsert_CopyVector()
 	for (I32 i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
 
 	v0.Insert(v0.Size(), v3);
-	//for (I32 i : v0) { printf("%d", i); }
-	printf("\n");
-
-	printf("%d\n", v0.Size());
-	printf("%d\n", v0.Capacity());
 
 	passed &= v0.Size() == 40 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v3.Size() == 10 && v3.Capacity() == 10 && v3.Data();
