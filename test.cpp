@@ -526,10 +526,10 @@ void VectorInsert_CopyVector()
 	printf("%d\n", v0.Size());
 	printf("%d\n", v0.Capacity());
 
-	for (I32 i : v0) { printf("%d", i); }
+	//for (I32 i : v0) { printf("%d", i); }
 	printf("\n");
 	v0.Insert(5, v1);
-	for (I32 i : v0) { printf("%d", i); }
+	//for (I32 i : v0) { printf("%d", i); }
 	printf("\n");
 
 	printf("%d\n", v0.Size());
@@ -543,7 +543,7 @@ void VectorInsert_CopyVector()
 	for (I32 i = 15; i < 20; ++i) { passed &= v0[i] == 1; }
 
 	v0.Insert(0, v2);
-	for (I32 i : v0) { printf("%d", i); }
+	//for (I32 i : v0) { printf("%d", i); }
 	printf("\n");
 
 	printf("%d\n", v0.Size());
@@ -558,7 +558,7 @@ void VectorInsert_CopyVector()
 	for (I32 i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
 
 	v0.Insert(v0.Size(), v3);
-	for (I32 i : v0) { printf("%d", i); }
+	//for (I32 i : v0) { printf("%d", i); }
 	printf("\n");
 
 	printf("%d\n", v0.Size());

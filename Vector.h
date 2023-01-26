@@ -4,6 +4,9 @@
 #include "Allocator.h"
 #include "Initiazer.h"
 
+//TODO: temp
+#include <stdio.h>
+
 /*
 * TODO: Variatic Templates
 *	Insert
@@ -557,11 +560,17 @@ template<typename T> inline void Vector<T>::Insert(U64 index, const Vector<T>& o
 {
 	if (size + other.size > capacity) { Reserve(size + other.size); }
 
+	for (T* t = array, *end = array + size; t != end; ++t) { printf("%d", *t); }
+	printf("\n");
+
 	//TODO: Doesn't work in release mode
 	memcpy(array + index + other.size, array + index, sizeof(T) * (size - index));
 	memcpy(array + index, other.array, sizeof(T) * (other.size));
 
 	size += other.size;
+
+	for (T* t = array, *end = array + size; t != end; ++t) { printf("%d", *t); }
+	printf("\n");
 }
 
 template<typename T> inline void Vector<T>::Insert(U64 index, Vector<T>&& other) noexcept
@@ -742,8 +751,11 @@ template<typename T> template<typename Predicate> inline void Vector<T>::RemoveA
 
 template<typename T> inline void Vector<T>::Reserve(U64 capacity)
 {
-	array = (T*)realloc(array, sizeof(T) * capacity);
 	this->capacity = capacity;
+	T* temp = array;
+	array = (T*)malloc(sizeof(T) * capacity);
+	memcpy(array, temp, sizeof(T) * size);
+	free(temp);
 }
 
 template<typename T> inline void Vector<T>::Resize(U64 size)
