@@ -9,16 +9,12 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Vector.h">
+    <ClInclude Include="Vector.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Defines.h">
+    <ClInclude Include="Defines.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Initiazer.h">
@@ -48,10 +44,10 @@
     <ClInclude Include="Allocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="String.h">
+    <ClInclude Include="String.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WideString.h">
+    <ClInclude Include="TypeTraits.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

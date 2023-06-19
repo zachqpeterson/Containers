@@ -1,7 +1,8 @@
-#include "Vector.h"
+#include "Vector.hpp"
 #include "List.h"
+#include "String.hpp"
 #include "Initiazer.h"
-#include "Defines.h"
+#include "Defines.hpp"
 
 #include <Windows.h>
 #include <stdio.h>
@@ -1200,6 +1201,8 @@ void STLVectorPushSpeed()
 int main()
 {
 	QueryPerformanceFrequency(&freq);
+
+	const String str("Hello, World");
 
 	VectorInit_Blank();
 	VectorInit_Capacity();
