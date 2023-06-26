@@ -404,9 +404,9 @@ void VectorPop()
 
 	Vector<I32> v0(10, 1);
 
-	I32 cap = v0.Capacity();
+	U64 cap = v0.Capacity();
 
-	for (I32 i = 10; i > 0; --i)
+	for (U64 i = 10; i > 0; --i)
 	{
 		v0.Pop();
 		passed &= v0.Size() == i - 1 && v0.Capacity() == cap && v0.Data();
@@ -425,9 +425,9 @@ void VectorPop_Copy()
 
 	Vector<I32> v0(10, 1);
 
-	I32 cap = v0.Capacity();
+	U64 cap = v0.Capacity();
 
-	for (I32 i = 10; i > 0; --i)
+	for (U64 i = 10; i > 0; --i)
 	{
 		I32 j;
 		v0.Pop(j);
@@ -447,9 +447,9 @@ void VectorPop_Move()
 
 	Vector<I32> v0(10, 1);
 
-	I32 cap = v0.Capacity();
+	U64 cap = v0.Capacity();
 
-	for (I32 i = 10; i > 0; --i)
+	for (U64 i = 10; i > 0; --i)
 	{
 		I32 j;
 		v0.Pop(Move(j));
@@ -1198,9 +1198,13 @@ void STLVectorPushSpeed()
 }
 #pragma endregion
 
+template<class Type, U64 Count> inline constexpr U64 CountOf(Type(&value)[Count]) { return Count; }
+
 int main()
 {
 	QueryPerformanceFrequency(&freq);
+
+	constexpr U64 size = CountOf("Hello, World");
 
 	const String str("Hello, World");
 

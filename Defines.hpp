@@ -52,15 +52,15 @@ static inline constexpr F64 F64_MIN = 2.2250738585072014e-308;	//Minimum value o
 
 #if _MSC_VER
 #include <intrin.h>
-#define debugBreak() __debugbreak()
+#define BreakPoint __debugbreak()
 #else
-#define debugBreak() __builtin_trap()
+#define BreakPoint __builtin_trap()
 #endif
 
 #define ASSERT(expr)		\
 {							\
 	if (expr) {}			\
-	else { debugBreak(); }	\
+	else { BreakPoint; }	\
 }
 
 template<typename T>
