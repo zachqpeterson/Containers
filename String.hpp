@@ -7,34 +7,40 @@
 
 template<Character C> struct StringBase;
 
-using String = StringBase<C8>;
-using String8 = StringBase<C8>;
-using String16 = StringBase<C16>;
-using String32 = StringBase<C32>;
-using WString = StringBase<CW>;
+using String = StringBase<char>;
+using String8 = StringBase<char8_t>;
+using String16 = StringBase<char16_t>;
+using String32 = StringBase<char32_t>;
+using StringW = StringBase<wchar_t>;
 
 template<Character C>
 struct StringBase
 {
 	StringBase();
+	StringBase(C* other);
+	StringBase(C* other, U64 length);
+	template<U64 Count> StringBase(const C(&other)[Count]);
 	StringBase(const StringBase& other);
 	StringBase(StringBase&& other) noexcept;
-	StringBase(C* other);
-	template<U64 Count> StringBase(const char(&other)[Count]);
 
 	~StringBase();
 	void Destroy();
 	void Clear();
 
-	StringBase& operator=(const StringBase& other);
-	StringBase& operator=(StringBase&& other) noexcept;
+	StringBase& operator=(NullPointer);
 	StringBase& operator=(C* other);
 	template<U64 Count> StringBase& operator=(const C(&other)[Count]);
+	StringBase& operator=(const StringBase& other);
+	StringBase& operator=(StringBase&& other) noexcept;
 
-	StringBase&& SubString(U64 start, U64 length = U64_MAX);
-	StringBase&& Appended(const String& append) const;
-	StringBase&& Prepended(const String& prepend) const;
-	StringBase&& Surrounded(const String& prepend, const String& append) const;
+	StringBase SubString(U64 start, U64 length = U64_MAX) const;
+	StringBase Appended(const String& append) const;
+	StringBase Prepended(const String& prepend) const;
+	StringBase Surrounded(const String& prepend, const String& append) const;
+
+	StringBase& Append(const String& append);
+	StringBase& Prepend(const String& prepend);
+	StringBase& Surround(const String& prepend, const String& append);
 
 	bool Blank() const;
 	I64 IndexOf(C c, U64 start = 0) const;
@@ -63,6 +69,12 @@ struct StringBase
 	const C* rend() const;
 
 private:
+	void Copy(C* a, const C* b, U64 length);
+	void Allocate(U64 length);
+	void Reallocate(U64 length);
+	U64 Length(const C* str) const;
+	bool Blank(C c) const;
+	bool NotBlank(C c) const;
 
 	U64 size{ 0 };
 	U64 capacity{ 0 };
@@ -73,34 +85,80 @@ template<Character C>
 inline StringBase<C>::StringBase() {}
 
 template<Character C>
-inline StringBase<C>::StringBase(const StringBase& other) : size{ other.size }, capacity{ other.capacity }, string{ (C*)calloc(capacity, 1) }
+inline StringBase<C>::StringBase(C* other) : size{ Length(other) }
 {
-	memcpy(string, other.string, size);
+	Allocate(size);
+	Copy(string, other, size);
 }
 
 template<Character C>
-inline StringBase<C>::StringBase(StringBase&& other) noexcept : size{ other.size }, capacity{ other.capacity }, string{ other.string } {}
-
-template<Character C>
-inline StringBase<C>::StringBase(C* other) : size{ strlen(other) }, capacity{ size }, string{ (C*)calloc(capacity, 1) }
+inline StringBase<C>::StringBase(C* other, U64 length) : size{ length }
 {
-	memcpy(string, other, size);
+	Allocate(size);
+	Copy(string, other, size);
 }
 
 template<Character C>
 template<U64 Count>
-inline StringBase<C>::StringBase(const char(&other)[Count]) : size{ Count }, capacity{ Count }, string{ (C*)calloc(1024, 1) }
+inline StringBase<C>::StringBase(const C(&other)[Count]) : size{ Count - 1 }
 {
-	memcpy(string, other, Count);
+	Allocate(size);
+	Copy(string, other, Count);
+}
+
+template<Character C>
+inline StringBase<C>::StringBase(const StringBase& other) : size{ other.size }
+{
+	Allocate(size);
+	Copy(string, other.string, size);
+}
+
+template<Character C>
+inline StringBase<C>::StringBase(StringBase&& other) noexcept : size{ other.size }, capacity{ other.capacity }, string{ other.string }
+{
+	other.size = 0;
+	other.capacity = 0;
+	other.string = nullptr;
+}
+
+template<Character C>
+inline StringBase<C>& StringBase<C>::operator=(NullPointer)
+{
+	Destroy();
+
+	return *this;
+}
+
+template<Character C>
+inline StringBase<C>& StringBase<C>::operator=(C* other)
+{
+	size = Length(other);
+
+	Reallocate(size);
+	Copy(string, other, size);
+
+	return *this;
+}
+
+template<Character C>
+template<U64 Count>
+inline StringBase<C>& StringBase<C>::operator=(const C(&other)[Count])
+{
+	size = Count - 1;
+
+	Reallocate(size);
+	Copy(string, other, Count);
+
+	return *this;
 }
 
 template<Character C>
 inline StringBase<C>& StringBase<C>::operator=(const StringBase& other)
 {
 	size = other.size;
-	capacity = other.capacity;
-	string = calloc(capacity, 1);
-	memcpy(string, other.string, size);
+
+	Reallocate(size);
+	Copy(string, other.string, size);
 
 	return *this;
 }
@@ -112,30 +170,27 @@ inline StringBase<C>& StringBase<C>::operator=(StringBase&& other) noexcept
 	capacity = other.capacity;
 	string = other.string;
 
-	return *this;
-}
-
-template<Character C>
-inline StringBase<C>& StringBase<C>::operator=(C* other)
-{
-	size = strlen(other);
-	capacity = size;
-	string = calloc(capacity, 1);
-	memcpy(string, other, size);
+	other.size = 0;
+	other.capacity = 0;
+	other.string = nullptr;
 
 	return *this;
 }
 
 template<Character C>
-template<U64 Count>
-inline StringBase<C>& StringBase<C>::operator=(const C(&other)[Count])
+inline StringBase<C> StringBase<C>::SubString(U64 start, U64 length) const
 {
-	size = Count;
-	capacity = Count;
-	string = calloc(1024, 1);
-	memcpy(string, other, Count);
-
-	return *this;
+	if (length != U64_MAX)
+	{
+		StringBase<C> str(string + start, length);
+		str.string[length] = '\0';
+		return Move(str);
+	}
+	else
+	{
+		StringBase<C> str(string + start, size - start);
+		return Move(str);
+	}
 }
 
 template<Character C>
@@ -160,4 +215,230 @@ template<Character C>
 inline void StringBase<C>::Clear()
 {
 	size = 0;
+}
+
+template<Character C>
+inline bool StringBase<C>::Blank() const
+{
+	if (!string) { return true; }
+
+	C* it = string;
+	C c = '\0';
+
+	while ((c = *it++) != '\0') { if (NotBlank(c)) { return false; } }
+
+	return true;
+}
+
+template<Character C>
+inline I64 StringBase<C>::IndexOf(C ch, U64 start) const
+{
+	if (start >= size) { return -1; }
+
+	C* it = string + start;
+	C* end = string + size;
+	C c = '\0';
+
+	while ((c = *it) != ch && it != end) { ++it; }
+
+	if (c == ch) { return it - string; }
+
+	return -1;
+}
+
+template<Character C>
+inline I64 StringBase<C>::LastIndexOf(C ch, U64 start) const
+{
+	if (start >= size) { return -1; }
+
+	C* it = string + size - start - 2;
+	C c = '\0';
+
+	while ((c = *it) != ch && it != string) { --it; }
+
+	if (c == ch) { return it - string; }
+
+	return -1;
+}
+
+template<Character C>
+inline const U64& StringBase<C>::Size() const
+{
+	return size;
+}
+
+template<Character C>
+inline const U64& StringBase<C>::Capacity() const
+{
+	return capacity;
+}
+
+template<Character C>
+inline C* StringBase<C>::Data()
+{
+	return string;
+}
+
+template<Character C>
+inline const C* StringBase<C>::Data() const
+{
+	return string;
+}
+
+template<Character C>
+inline StringBase<C>::operator C* ()
+{
+	return string;
+}
+
+template<Character C>
+inline StringBase<C>::operator const C* () const
+{
+	return string;
+}
+
+template<Character C>
+inline C* StringBase<C>::begin()
+{
+	return string;
+}
+
+template<Character C>
+inline C* StringBase<C>::end()
+{
+	return string + size;
+}
+
+template<Character C>
+inline const C* StringBase<C>::begin() const
+{
+	return string;
+}
+
+template<Character C>
+inline const C* StringBase<C>::end() const
+{
+	return string + size;
+}
+
+template<Character C>
+inline C* StringBase<C>::rbegin()
+{
+	return string + size - 1;
+}
+
+template<Character C>
+inline C* StringBase<C>::rend()
+{
+	return string - 1;
+}
+
+template<Character C>
+inline const C* StringBase<C>::rbegin() const
+{
+	return string + size - 1;
+}
+
+template<Character C>
+inline const C* StringBase<C>::rend() const
+{
+	return string - 1;
+}
+
+
+
+//Helpers
+template<Character C>
+inline void StringBase<C>::Copy(C* dst, const C* src, U64 length)
+{
+	constexpr U64 size = sizeof(C);
+	memcpy(dst, src, length * size);
+}
+
+template<Character C>
+inline void StringBase<C>::Allocate(U64 length)
+{
+	constexpr U64 size = sizeof(C);
+
+	capacity = BitCeiling(length);
+	capacity = capacity < 1024 ? 1024 : capacity;
+
+	string = (C*)malloc(capacity * size);
+}
+
+template<Character C>
+inline void StringBase<C>::Reallocate(U64 length)
+{
+	constexpr U64 size = sizeof(C);
+
+	if (length <= capacity) { return; }
+
+	capacity = BitCeiling(length);
+	capacity = capacity < 1024 ? 1024 : capacity;
+
+	if (string) { string = (C*)realloc(string, capacity * size); }
+	else { string = (C*)malloc(capacity * size); }
+}
+
+template<Character C>
+inline U64 StringBase<C>::Length(const C* str) const
+{
+	U64 length = 0;
+	if constexpr (IsSame<C, char>) { while (*str != '\0') { ++str; ++length; } }
+	else if constexpr (IsSame<C, char8_t>) { while (*str != u8'\0') { ++str; ++length; } }
+	else if constexpr (IsSame<C, char16_t>) { while (*str != u'\0') { ++str; ++length; } }
+	else if constexpr (IsSame<C, char32_t>) { while (*str != U'\0') { ++str; ++length; } }
+	else if constexpr (IsSame<C, wchar_t>) { while (*str != L'\0') { ++str; ++length; } }
+
+	return length;
+}
+
+template<Character C>
+inline bool StringBase<C>::Blank(C c) const
+{
+	if constexpr (IsSame<C, char>)
+	{
+		return c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f' || c == ' ';
+	}
+	else if constexpr (IsSame<C, char8_t>)
+	{
+		return c == u8'\n' || c == u8'\r' || c == u8'\t' || c == u8'\v' || c == u8'\f' || c == u8' ';
+	}
+	else if constexpr (IsSame<C, char16_t>)
+	{
+		return c == u'\n' || c == u'\r' || c == u'\t' || c == u'\v' || c == u'\f' || c == u' ';
+	}
+	else if constexpr (IsSame<C, char32_t>)
+	{
+		return c == U'\n' || c == U'\r' || c == U'\t' || c == U'\v' || c == U'\f' || c == U' ';
+	}
+	else if constexpr (IsSame<C, wchar_t>)
+	{
+		return c == L'\n' || c == L'\r' || c == L'\t' || c == L'\v' || c == L'\f' || c == L' ';
+	}
+}
+
+template<Character C>
+inline bool StringBase<C>::NotBlank(C c) const
+{
+	if constexpr (IsSame<C, char>)
+	{
+		return c != '\n' && c != '\r' && c != '\t' && c != '\v' && c != '\f' && c != ' ';
+	}
+	else if constexpr (IsSame<C, char8_t>)
+	{
+		return c != u8'\n' && c != u8'\r' && c != u8'\t' && c != u8'\v' && c != u8'\f' && c != u8' ';
+	}
+	else if constexpr (IsSame<C, char16_t>)
+	{
+		return c != u'\n' && c != u'\r' && c != u'\t' && c != u'\v' && c != u'\f' && c != u' ';
+	}
+	else if constexpr (IsSame<C, char32_t>)
+	{
+		return c != U'\n' && c != U'\r' && c != U'\t' && c != U'\v' && c != U'\f' && c != U' ';
+	}
+	else if constexpr (IsSame<C, wchar_t>)
+	{
+		return c != L'\n' && c != L'\r' && c != L'\t' && c != L'\v' && c != L'\f' && c != L' ';
+	}
 }

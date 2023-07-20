@@ -18,10 +18,11 @@ typedef signed long long I64;	//Signed 64-bit integer
 typedef float F32;				//32-bit floating point number
 typedef double F64;				//64-bit floating point number
 
-typedef char C8;				//8-bit ascii character
+typedef char CH;				//8-bit ascii character
+typedef char8_t C8;				//8-bit ascii character
 typedef char16_t C16;			//16-bit unicode character
-typedef wchar_t CW;				//Platform defined wide character, WINDOWS: 16-bit, OTHER: 32-bit
 typedef char32_t C32;			//32-bit unicode character
+typedef wchar_t CW;				//Platform defined wide character, WINDOWS: 16-bit, OTHER: 32-bit
 
 typedef decltype(__nullptr) NullPointer; //Nullptr type
 
@@ -51,10 +52,10 @@ static inline constexpr F64 F64_MAX = 1.7976931348623158e+308;	//Maximum value o
 static inline constexpr F64 F64_MIN = 2.2250738585072014e-308;	//Minimum value of a 64-bit float
 
 #if _MSC_VER
-#include <intrin.h>
-#define BreakPoint __debugbreak()
+#	include <intrin.h>
+#	define BreakPoint __debugbreak()
 #else
-#define BreakPoint __builtin_trap()
+#	define BreakPoint __builtin_trap()
 #endif
 
 #define ASSERT(expr)		\
@@ -63,14 +64,33 @@ static inline constexpr F64 F64_MIN = 2.2250738585072014e-308;	//Minimum value o
 	else { BreakPoint; }	\
 }
 
-template<typename T>
-constexpr T&& Move(T&& t) noexcept
-{
-    return static_cast<T&&>(t);
-}
+#ifndef HAS_NODISCARD
+#	ifndef __has_cpp_attribute
+#		define HAS_NODISCARD 0
+#	elif __has_cpp_attribute(nodiscard) >= 201603L
+#		define HAS_NODISCARD 1
+#	else
+#		define HAS_NODISCARD 0
+#	endif
+#endif
 
-template<typename T>
-constexpr T&& Move(T& t) noexcept
+#if HAS_NODISCARD
+#	define NH_NODISCARD [[nodiscard]]
+#else
+#	define NH_NODISCARD
+#endif
+
+enum ISAAvailability
 {
-    return static_cast<T&&>(t);
-}
+	ISA_AVAILABLE_X86 = 0,
+	ISA_AVAILABLE_SSE2 = 1,
+	ISA_AVAILABLE_SSE42 = 2,
+	ISA_AVAILABLE_AVX = 3,
+	ISA_AVAILABLE_ENFSTRG = 4,
+	ISA_AVAILABLE_AVX2 = 5,
+	ISA_AVAILABLE_AVX512 = 6,
+
+	ISA_AVAILABLE_ARMNT = 0,
+	ISA_AVAILABLE_NEON = 1,
+	ISA_AVAILABLE_NEON_ARM64 = 2,
+};

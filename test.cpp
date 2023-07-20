@@ -10,24 +10,29 @@
 #include <list>
 
 #define BEGIN_TEST				\
-bool passed = true;				\
+bool passed = false;			\
 LARGE_INTEGER start;			\
 QueryPerformanceCounter(&start);
 
-constexpr int Length(const char* str)
-{
-	return *str ? 1 + Length(str + 1) : 0;
-}
+template<U64 Count> constexpr U64 Length(const char(&)[Count]) { return Count; }
 
 #define END_TEST																		\
 LARGE_INTEGER end;																		\
 QueryPerformanceCounter(&end);															\
 F64 time = (F64)(end.QuadPart - start.QuadPart) / (F64)freq.QuadPart;					\
-constexpr char len = Length(__FUNCTION__);												\
+constexpr U64 len = Length(__FUNCTION__);												\
 char name[len + 2] = __FUNCTION__;														\
 name[len] = ':';																		\
 name[len + 1] = '\0';																	\
 printf("%-35s %s  |  Time taken: %fs\n", name, passed ? "\033[32mPASSED\033[0m" : "\033[31mFAILED\033[0m", time);
+
+template<typename T>
+bool Compare(const T* a, const T* b, U64 length)
+{
+	while (length--) { if (*a++ != *b++) { return false; } }
+
+	return true;
+}
 
 LARGE_INTEGER freq;
 
@@ -35,7 +40,7 @@ bool Pred0(U64 i) { return i == 2; }
 
 bool Pred1(U64 i) { return i < 5; }
 
-#pragma region VectorTests
+#pragma region Vector Tests
 void VectorInit_Blank()
 {
 	BEGIN_TEST;
@@ -1198,16 +1203,375 @@ void STLVectorPushSpeed()
 }
 #pragma endregion
 
-template<class Type, U64 Count> inline constexpr U64 CountOf(Type(&value)[Count]) { return Count; }
+#pragma region String Tests
+
+void StringInit_Blank()
+{
+	BEGIN_TEST;
+
+	String str0;
+	String8 str1;
+	String16 str2;
+	String32 str3;
+	StringW str4;
+
+	passed = str0.Size() == 0 && str0.Capacity() == 0 && str0.Data() == nullptr &&
+		str1.Size() == 0 && str1.Capacity() == 0 && str1.Data() == nullptr &&
+		str2.Size() == 0 && str2.Capacity() == 0 && str2.Data() == nullptr &&
+		str3.Size() == 0 && str3.Capacity() == 0 && str3.Data() == nullptr &&
+		str4.Size() == 0 && str4.Capacity() == 0 && str4.Data() == nullptr;
+
+	END_TEST;
+}
+
+void StringInit_Array()
+{
+	BEGIN_TEST;
+
+	CH* a0 = new CH[10];
+	a0[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a0[i] = i + 100; }
+	C8* a1 = new C8[10];
+	a1[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a1[i] = i + 100; }
+	C16* a2 = new C16[10];
+	a2[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a2[i] = i + 100; }
+	C32* a3 = new C32[10];
+	a3[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a3[i] = i + 100; }
+	CW* a4 = new CW[10];
+	a4[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a4[i] = i + 100; }
+
+	String str0(a0);
+	String8 str1(a1);
+	String16 str2(a2);
+	String32 str3(a3);
+	StringW str4(a4);
+
+	passed = str0.Size() == 9 && str0.Capacity() == 1024 && Compare(str0.Data(), "defghijkl", 9) &&
+		str1.Size() == 9 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defghijkl", 9) &&
+		str2.Size() == 9 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defghijkl", 9) &&
+		str3.Size() == 9 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defghijkl", 9) &&
+		str4.Size() == 9 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defghijkl", 9);
+
+	END_TEST;
+
+	delete[] a0;
+	delete[] a1;
+	delete[] a2;
+	delete[] a3;
+	delete[] a4;
+}
+
+void StringInit_ArrayLength()
+{
+	BEGIN_TEST;
+
+	CH* a0 = new CH[10];
+	a0[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a0[i] = i + 100; }
+	C8* a1 = new C8[10];
+	a1[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a1[i] = i + 100; }
+	C16* a2 = new C16[10];
+	a2[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a2[i] = i + 100; }
+	C32* a3 = new C32[10];
+	a3[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a3[i] = i + 100; }
+	CW* a4 = new CW[10];
+	a4[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a4[i] = i + 100; }
+
+	String str0(a0, 5);
+	String8 str1(a1, 5);
+	String16 str2(a2, 5);
+	String32 str3(a3, 5);
+	StringW str4(a4, 5);
+
+	passed = str0.Size() == 5 && str0.Capacity() == 1024 && Compare(str0.Data(), "defgh", 5) &&
+		str1.Size() == 5 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defgh", 5) &&
+		str2.Size() == 5 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defgh", 5) &&
+		str3.Size() == 5 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defgh", 5) &&
+		str4.Size() == 5 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defgh", 5);
+
+	END_TEST;
+
+	delete[] a0;
+	delete[] a1;
+	delete[] a2;
+	delete[] a3;
+	delete[] a4;
+}
+
+void StringInit_Literal()
+{
+	BEGIN_TEST;
+
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	passed = str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13);
+
+	END_TEST;
+}
+
+void StringInit_Copy()
+{
+	BEGIN_TEST;
+
+	String c0("Hello, World!");
+	String8 c1(u8"Hello, World!");
+	String16 c2(u"Hello, World!");
+	String32 c3(U"Hello, World!");
+	StringW c4(L"Hello, World!");
+
+	String str0(c0);
+	String8 str1(c1);
+	String16 str2(c2);
+	String32 str3(c3);
+	StringW str4(c4);
+
+	passed = c0.Size() == 13 && c0.Capacity() == 1024 && Compare(c0.Data(), "Hello, World!", 13) &&
+		c1.Size() == 13 && c1.Capacity() == 1024 && Compare(c1.Data(), u8"Hello, World!", 13) &&
+		c2.Size() == 13 && c2.Capacity() == 1024 && Compare(c2.Data(), u"Hello, World!", 13) &&
+		c3.Size() == 13 && c3.Capacity() == 1024 && Compare(c3.Data(), U"Hello, World!", 13) &&
+		c4.Size() == 13 && c4.Capacity() == 1024 && Compare(c4.Data(), L"Hello, World!", 13) &&
+		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13) &&
+		c0.Data() != str0.Data() && c1.Data() != str1.Data() && c2.Data() != str2.Data() &&
+		c3.Data() != str3.Data() && c4.Data() != str4.Data();
+
+	END_TEST;
+}
+
+void StringInit_Move()
+{
+	BEGIN_TEST;
+
+	String c0("Hello, World!");
+	String8 c1(u8"Hello, World!");
+	String16 c2(u"Hello, World!");
+	String32 c3(U"Hello, World!");
+	StringW c4(L"Hello, World!");
+
+	String str0(Move(c0));
+	String8 str1(Move(c1));
+	String16 str2(Move(c2));
+	String32 str3(Move(c3));
+	StringW str4(Move(c4));
+
+	passed = c0.Size() == 0 && c0.Capacity() == 0 && c0.Data() == nullptr &&
+		c1.Size() == 0 && c1.Capacity() == 0 && c1.Data() == nullptr &&
+		c2.Size() == 0 && c2.Capacity() == 0 && c2.Data() == nullptr &&
+		c3.Size() == 0 && c3.Capacity() == 0 && c3.Data() == nullptr &&
+		c4.Size() == 0 && c4.Capacity() == 0 && c4.Data() == nullptr &&
+		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13);
+
+	END_TEST;
+}
+
+void StringAssign_NullPointer()
+{
+	BEGIN_TEST;
+
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	str0 = nullptr;
+	str1 = nullptr;
+	str2 = nullptr;
+	str3 = nullptr;
+	str4 = nullptr;
+
+	passed = str0.Size() == 0 && str0.Capacity() == 0 && str0.Data() == nullptr &&
+		str1.Size() == 0 && str1.Capacity() == 0 && str1.Data() == nullptr &&
+		str2.Size() == 0 && str2.Capacity() == 0 && str2.Data() == nullptr &&
+		str3.Size() == 0 && str3.Capacity() == 0 && str3.Data() == nullptr &&
+		str4.Size() == 0 && str4.Capacity() == 0 && str4.Data() == nullptr;
+
+	END_TEST;
+}
+
+void StringAssign_Array()
+{
+	BEGIN_TEST;
+
+	CH* a0 = new CH[10];
+	a0[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a0[i] = i + 100; }
+	C8* a1 = new C8[10];
+	a1[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a1[i] = i + 100; }
+	C16* a2 = new C16[10];
+	a2[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a2[i] = i + 100; }
+	C32* a3 = new C32[10];
+	a3[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a3[i] = i + 100; }
+	CW* a4 = new CW[10];
+	a4[9] = '\0';
+	for (U32 i = 0; i < 9; ++i) { a4[i] = i + 100; }
+
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	str0 = a0;
+	str1 = a1;
+	str2 = a2;
+	str3 = a3;
+	str4 = a4;
+
+	passed = str0.Size() == 9 && str0.Capacity() == 1024 && Compare(str0.Data(), "defghijkl", 9) &&
+		str1.Size() == 9 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defghijkl", 9) &&
+		str2.Size() == 9 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defghijkl", 9) &&
+		str3.Size() == 9 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defghijkl", 9) &&
+		str4.Size() == 9 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defghijkl", 9);
+
+	END_TEST;
+
+	delete[] a0;
+	delete[] a1;
+	delete[] a2;
+	delete[] a3;
+	delete[] a4;
+}
+
+void StringAssign_Literal()
+{
+	BEGIN_TEST;
+
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	str0 = "Goodbye, World!";
+	str1 = u8"Goodbye, World!";
+	str2 = u"Goodbye, World!";
+	str3 = U"Goodbye, World!";
+	str4 = L"Goodbye, World!";
+
+	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 15) &&
+		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 15) &&
+		str2.Size() == 15 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Goodbye, World!", 15) &&
+		str3.Size() == 15 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Goodbye, World!", 15) &&
+		str4.Size() == 15 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Goodbye, World!", 15);
+
+	END_TEST;
+}
+
+void StringAssign_Copy()
+{
+
+}
+
+void StringAssign_CopySelf()
+{
+	//TODO: BAD! We lose ptr to previous string that isn't freed
+	String str0("Hello, World!");
+	str0 = str0;
+
+	BreakPoint;
+
+}
+
+void StringAssign_Move()
+{
+
+}
+
+void StringAssign_MoveSelf()
+{
+	//TODO: BAD! We destroy this string
+	String str0("Hello, World!");
+	str0 = Move(str0);
+
+	BreakPoint;
+}
+
+
+
+
+void StringBlank()
+{
+	BEGIN_TEST;
+
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+	String str5;
+	String8 str6;
+	String16 str7;
+	String32 str8;
+	StringW str9;
+	String str10("\n\r\t\v\f		");
+	String8 str11(u8"\n\r\t\v\f		");
+	String16 str12(u"\n\r\t\v\f		");
+	String32 str13(U"\n\r\t\v\f		");
+	StringW str14(L"\n\r\t\v\f		");
+
+	passed = !str0.Blank() && !str1.Blank() && !str2.Blank() && !str3.Blank() && !str4.Blank() &&
+		str5.Blank() && str6.Blank() && str7.Blank() && str8.Blank() && str9.Blank() &&
+		str10.Blank() && str11.Blank() && str12.Blank() && str13.Blank() && str14.Blank();
+
+	END_TEST;
+}
+
+#pragma endregion
 
 int main()
 {
+	constexpr U32 i = BitCeiling(4096u);
+
 	QueryPerformanceFrequency(&freq);
 
-	constexpr U64 size = CountOf("Hello, World");
+#pragma region String Tests
+	printf("STRING TESTS: \n");
+	StringInit_Blank();
+	StringInit_Array();
+	StringInit_ArrayLength();
+	StringInit_Literal();
+	StringInit_Copy();
+	StringInit_Move();
+	StringAssign_NullPointer();
+	StringAssign_Array();
+	StringAssign_Literal();
+	StringAssign_Copy();
+	StringAssign_CopySelf();
+	StringAssign_Move();
+	StringAssign_MoveSelf();
 
-	const String str("Hello, World");
+	StringBlank();
+#pragma endregion
 
+#pragma region Vector Tests
+	printf("\nVECTOR TESTS: \n");
 	VectorInit_Blank();
 	VectorInit_Capacity();
 	VectorInit_Size();
@@ -1257,4 +1621,5 @@ int main()
 	VectorSubscript();
 	VectorPushSpeed();
 	STLVectorPushSpeed();
+#pragma endregion
 }
