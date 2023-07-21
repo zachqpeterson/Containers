@@ -155,6 +155,8 @@ inline StringBase<C>& StringBase<C>::operator=(const C(&other)[Count])
 template<Character C>
 inline StringBase<C>& StringBase<C>::operator=(const StringBase& other)
 {
+	if (&other == this) { return *this; }
+
 	size = other.size;
 
 	Reallocate(size);
@@ -166,6 +168,10 @@ inline StringBase<C>& StringBase<C>::operator=(const StringBase& other)
 template<Character C>
 inline StringBase<C>& StringBase<C>::operator=(StringBase&& other) noexcept
 {
+	if (&other == this) { return *this; }
+
+	Destroy();
+
 	size = other.size;
 	capacity = other.capacity;
 	string = other.string;

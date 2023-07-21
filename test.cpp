@@ -1486,31 +1486,144 @@ void StringAssign_Literal()
 
 void StringAssign_Copy()
 {
+	BEGIN_TEST;
 
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	String str5("Goodbye, World!");
+	String8 str6(u8"Goodbye, World!");
+	String16 str7(u"Goodbye, World!");
+	String32 str8(U"Goodbye, World!");
+	StringW str9(L"Goodbye, World!");
+
+	str0 = str5;
+	str1 = str6;
+	str2 = str7;
+	str3 = str8;
+	str4 = str9;
+
+	//TODO: Somehow confirm old ptr was freed
+
+	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 15) &&
+		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 15) &&
+		str2.Size() == 15 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Goodbye, World!", 15) &&
+		str3.Size() == 15 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Goodbye, World!", 15) &&
+		str4.Size() == 15 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Goodbye, World!", 15) &&
+		str5.Size() == 15 && str5.Capacity() == 1024 && Compare(str5.Data(), "Goodbye, World!", 15) &&
+		str6.Size() == 15 && str6.Capacity() == 1024 && Compare(str6.Data(), u8"Goodbye, World!", 15) &&
+		str7.Size() == 15 && str7.Capacity() == 1024 && Compare(str7.Data(), u"Goodbye, World!", 15) &&
+		str8.Size() == 15 && str8.Capacity() == 1024 && Compare(str8.Data(), U"Goodbye, World!", 15) &&
+		str9.Size() == 15 && str9.Capacity() == 1024 && Compare(str9.Data(), L"Goodbye, World!", 15);
+
+	END_TEST;
 }
 
 void StringAssign_CopySelf()
 {
-	//TODO: BAD! We lose ptr to previous string that isn't freed
+	BEGIN_TEST;
+
 	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	CH* p0 = str0.Data();
+	C8* p1 = str1.Data();
+	C16* p2 = str2.Data();
+	C32* p3 = str3.Data();
+	CW* p4 = str4.Data();
+
 	str0 = str0;
+	str1 = str1;
+	str2 = str2;
+	str3 = str3;
+	str4 = str4;
 
-	BreakPoint;
+	passed = str0.Data() == p0 && str1.Data() == p1 && str2.Data() == p2 && 
+		str3.Data() == p3 && str4.Data() == p4 && 
+		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13);
 
+	END_TEST;
 }
 
 void StringAssign_Move()
 {
+	BEGIN_TEST;
 
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	String str5("Goodbye, World!");
+	String8 str6(u8"Goodbye, World!");
+	String16 str7(u"Goodbye, World!");
+	String32 str8(U"Goodbye, World!");
+	StringW str9(L"Goodbye, World!");
+
+	str0 = Move(str5);
+	str1 = Move(str6);
+	str2 = Move(str7);
+	str3 = Move(str8);
+	str4 = Move(str9);
+
+	//TODO: Somehow confirm old ptr was freed
+
+	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 15) &&
+		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 15) &&
+		str2.Size() == 15 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Goodbye, World!", 15) &&
+		str3.Size() == 15 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Goodbye, World!", 15) &&
+		str4.Size() == 15 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Goodbye, World!", 15) &&
+		str5.Size() == 0 && str5.Capacity() == 0 && str5.Data() == nullptr &&
+		str6.Size() == 0 && str6.Capacity() == 0 && str6.Data() == nullptr &&
+		str7.Size() == 0 && str7.Capacity() == 0 && str7.Data() == nullptr &&
+		str8.Size() == 0 && str8.Capacity() == 0 && str8.Data() == nullptr &&
+		str9.Size() == 0 && str9.Capacity() == 0 && str9.Data() == nullptr;
+
+	END_TEST;
 }
 
 void StringAssign_MoveSelf()
 {
-	//TODO: BAD! We destroy this string
-	String str0("Hello, World!");
-	str0 = Move(str0);
+	BEGIN_TEST;
 
-	BreakPoint;
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	CH* p0 = str0.Data();
+	C8* p1 = str1.Data();
+	C16* p2 = str2.Data();
+	C32* p3 = str3.Data();
+	CW* p4 = str4.Data();
+
+	str0 = Move(str0);
+	str1 = Move(str1);
+	str2 = Move(str2);
+	str3 = Move(str3);
+	str4 = Move(str4);
+
+	passed = str0.Data() == p0 && str1.Data() == p1 && str2.Data() == p2 &&
+		str3.Data() == p3 && str4.Data() == p4 &&
+		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13);
+
+	END_TEST;
 }
 
 
@@ -1547,8 +1660,6 @@ void StringBlank()
 
 int main()
 {
-	constexpr U32 i = BitCeiling(4096u);
-
 	QueryPerformanceFrequency(&freq);
 
 #pragma region String Tests
