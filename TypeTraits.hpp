@@ -565,20 +565,7 @@ NH_NODISCARD constexpr T BitCeiling(const T val) noexcept
 {
 	if (val <= 1u) { return T{ 1 }; }
 
-	const U64 num = Traits<T>::NumericalBits - LeftZeroBits(static_cast<T>(val - 1));
-
-	if constexpr (sizeof(T) < sizeof(unsigned int))
-	{
-		if (ConstantEvaluation())
-		{
-			if (num == Traits<T>::NumericalBits)
-			{
-				static_assert("Uh oh, stinky!");
-			}
-		}
-	}
-
-	return static_cast<T>(T{ 1 } << num);
+	return static_cast<T>(T{ 1 } << (Traits<T>::NumericalBits - LeftZeroBits(static_cast<T>(val - 1))));
 }
 
 template<Unsigned T>

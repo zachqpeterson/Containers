@@ -17,19 +17,19 @@ template<Character C>
 struct StringBase
 {
 	StringBase();
-	StringBase(C* other);
-	StringBase(C* other, U64 length);
-	template<U64 Count> StringBase(const C(&other)[Count]);
+	StringBase(const C* other);
+	StringBase(const C* other, U64 length);
 	StringBase(const StringBase& other);
 	StringBase(StringBase&& other) noexcept;
 
 	~StringBase();
 	void Destroy();
 	void Clear();
+	void Resize();
+	void Reserve(U64 capacity);
 
 	StringBase& operator=(NullPointer);
-	StringBase& operator=(C* other);
-	template<U64 Count> StringBase& operator=(const C(&other)[Count]);
+	StringBase& operator=(const C* other);
 	StringBase& operator=(const StringBase& other);
 	StringBase& operator=(StringBase&& other) noexcept;
 
@@ -72,7 +72,7 @@ private:
 	void Copy(C* a, const C* b, U64 length);
 	void Allocate(U64 length);
 	void Reallocate(U64 length);
-	U64 Length(const C* str) const;
+	constexpr U64 Length(const C* str) const;
 	bool Blank(C c) const;
 	bool NotBlank(C c) const;
 
@@ -85,25 +85,19 @@ template<Character C>
 inline StringBase<C>::StringBase() {}
 
 template<Character C>
-inline StringBase<C>::StringBase(C* other) : size{ Length(other) }
+inline StringBase<C>::StringBase(const C* other) : size{ Length(other) }
 {
 	Allocate(size);
 	Copy(string, other, size);
+	string[size] = '\0';
 }
 
 template<Character C>
-inline StringBase<C>::StringBase(C* other, U64 length) : size{ length }
+inline StringBase<C>::StringBase(const C* other, U64 length) : size{ length }
 {
 	Allocate(size);
 	Copy(string, other, size);
-}
-
-template<Character C>
-template<U64 Count>
-inline StringBase<C>::StringBase(const C(&other)[Count]) : size{ Count - 1 }
-{
-	Allocate(size);
-	Copy(string, other, Count);
+	string[size] = '\0';
 }
 
 template<Character C>
@@ -130,24 +124,13 @@ inline StringBase<C>& StringBase<C>::operator=(NullPointer)
 }
 
 template<Character C>
-inline StringBase<C>& StringBase<C>::operator=(C* other)
+inline StringBase<C>& StringBase<C>::operator=(const C* other)
 {
 	size = Length(other);
 
 	Reallocate(size);
 	Copy(string, other, size);
-
-	return *this;
-}
-
-template<Character C>
-template<U64 Count>
-inline StringBase<C>& StringBase<C>::operator=(const C(&other)[Count])
-{
-	size = Count - 1;
-
-	Reallocate(size);
-	Copy(string, other, Count);
+	string[size] = '\0';
 
 	return *this;
 }
@@ -208,7 +191,7 @@ inline StringBase<C>::~StringBase()
 template<Character C>
 inline void StringBase<C>::Destroy()
 {
-	if(string)
+	if (string)
 	{
 		size = 0;
 		capacity = 0;
@@ -220,7 +203,20 @@ inline void StringBase<C>::Destroy()
 template<Character C>
 inline void StringBase<C>::Clear()
 {
+	string[0] = '\0';
 	size = 0;
+}
+
+template<Character C>
+inline void StringBase<C>::Resize()
+{
+	size = Length(string);
+}
+
+template<Character C>
+inline void StringBase<C>::Reserve(U64 capacity)
+{
+	Reallocate(capacity);
 }
 
 template<Character C>
@@ -387,16 +383,12 @@ inline void StringBase<C>::Reallocate(U64 length)
 }
 
 template<Character C>
-inline U64 StringBase<C>::Length(const C* str) const
+constexpr inline U64 StringBase<C>::Length(const C* str) const
 {
-	U64 length = 0;
-	if constexpr (IsSame<C, char>) { while (*str != '\0') { ++str; ++length; } }
-	else if constexpr (IsSame<C, char8_t>) { while (*str != u8'\0') { ++str; ++length; } }
-	else if constexpr (IsSame<C, char16_t>) { while (*str != u'\0') { ++str; ++length; } }
-	else if constexpr (IsSame<C, char32_t>) { while (*str != U'\0') { ++str; ++length; } }
-	else if constexpr (IsSame<C, wchar_t>) { while (*str != L'\0') { ++str; ++length; } }
+	const C* it = str;
+	while (*it) { ++it; }
 
-	return length;
+	return it - str;
 }
 
 template<Character C>
