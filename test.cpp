@@ -1676,7 +1676,38 @@ void StringClear()
 	END_TEST;
 }
 
+void StringResize()
+{
+	BEGIN_TEST;
 
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	str0.Data()[5] = '\0';
+	str1.Data()[5] = u8'\0';
+	str2.Data()[5] = u'\0';
+	str3.Data()[5] = U'\0';
+	str4.Data()[5] = L'\0';
+
+	str0.Resize();
+	str1.Resize();
+	str2.Resize();
+	str3.Resize();
+	str4.Resize();
+
+	passed = str0.Size() == 5 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello", 5) &&
+		str1.Size() == 5 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello", 5) &&
+		str2.Size() == 5 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello", 5) &&
+		str3.Size() == 5 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello", 5) &&
+		str4.Size() == 5 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello", 5);
+
+	END_TEST;
+}
+
+//TODO: Reserve
 
 void StringBlank()
 {
@@ -1728,6 +1759,7 @@ int main()
 	StringAssign_MoveSelf();
 	StringDestroy();
 	StringClear();
+	StringResize();
 
 	StringBlank();
 #pragma endregion
