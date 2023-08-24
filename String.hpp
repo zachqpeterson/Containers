@@ -3,8 +3,6 @@
 #include "Defines.hpp"
 #include "TypeTraits.hpp"
 
-#include <string>
-
 template<Character C> struct StringBase;
 
 using String = StringBase<char>;
@@ -17,6 +15,7 @@ template<Character C>
 struct StringBase
 {
 	StringBase();
+	StringBase(NullPointer);
 	StringBase(const C* other);
 	StringBase(const C* other, U64 length);
 	StringBase(const StringBase& other);
@@ -83,6 +82,9 @@ private:
 
 template<Character C>
 inline StringBase<C>::StringBase() {}
+
+template<Character C>
+inline StringBase<C>::StringBase(NullPointer) {}
 
 template<Character C>
 inline StringBase<C>::StringBase(const C* other) : size{ Length(other) }
