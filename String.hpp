@@ -11,15 +11,38 @@ using String16 = StringBase<char16_t>;
 using String32 = StringBase<char32_t>;
 using StringW = StringBase<wchar_t>;
 
+template <class Type> inline constexpr bool IsStringType = AnyOf<RemovedQuals<Type>, String, String8, String16, String32, StringW>;
+template <class Type> concept StringType = IsStringType<Type>;
+template <class Type> inline constexpr bool IsNonStringPointer = IsPointer<Type> && !IsStringLiteral<Type>;
+template <class Type> concept NonStringPointer = IsNonStringPointer<Type>;
+template <class Type> inline constexpr bool IsNonStringClass = IsClass<Type> && !IsStringType<Type>;
+template <class Type> concept NonStringClass = IsNonStringClass<Type>;
+
+template<Character C>
+void Copy(C* dst, const C* src, U64 length)
+{
+	constexpr U64 size = sizeof(C);
+	memcpy(dst, src, length * size);
+}
+
+//TODO:
+//Formatting
+//
 template<Character C>
 struct StringBase
 {
 	StringBase();
 	StringBase(NullPointer);
+	StringBase(U64 length);
 	StringBase(const C* other);
 	StringBase(const C* other, U64 length);
 	StringBase(const StringBase& other);
 	StringBase(StringBase&& other) noexcept;
+
+	StringBase& operator=(NullPointer);
+	StringBase& operator=(const C* other);
+	StringBase& operator=(const StringBase& other);
+	StringBase& operator=(StringBase&& other) noexcept;
 
 	~StringBase();
 	void Destroy();
@@ -27,19 +50,15 @@ struct StringBase
 	void Resize();
 	void Reserve(U64 capacity);
 
-	StringBase& operator=(NullPointer);
-	StringBase& operator=(const C* other);
-	StringBase& operator=(const StringBase& other);
-	StringBase& operator=(StringBase&& other) noexcept;
-
 	StringBase SubString(U64 start, U64 length = U64_MAX) const;
-	StringBase Appended(const String& append) const;
-	StringBase Prepended(const String& prepend) const;
-	StringBase Surrounded(const String& prepend, const String& append) const;
+	StringBase Appended(const StringBase& append) const;
+	StringBase Prepended(const StringBase& prepend) const;
+	StringBase Surrounded(const StringBase& prepend, const StringBase& append) const;
 
-	StringBase& Append(const String& append);
-	StringBase& Prepend(const String& prepend);
-	StringBase& Surround(const String& prepend, const String& append);
+	StringBase& Shave(U64 start, U64 length = U64_MAX);
+	StringBase& Append(const StringBase& append);
+	StringBase& Prepend(const StringBase& prepend);
+	StringBase& Surround(const StringBase& prepend, const StringBase& append);
 
 	bool Blank() const;
 	I64 IndexOf(C c, U64 start = 0) const;
@@ -48,6 +67,7 @@ struct StringBase
 	StringBase& Trim();
 	StringBase& ToUpper();
 	StringBase& ToLower();
+	StringBase& ToCapital();
 
 	const U64& Size() const;
 	const U64& Capacity() const;
@@ -68,7 +88,6 @@ struct StringBase
 	const C* rend() const;
 
 private:
-	void Copy(C* a, const C* b, U64 length);
 	void Allocate(U64 length);
 	void Reallocate(U64 length);
 	constexpr U64 Length(const C* str) const;
@@ -85,6 +104,12 @@ inline StringBase<C>::StringBase() {}
 
 template<Character C>
 inline StringBase<C>::StringBase(NullPointer) {}
+
+template<Character C>
+inline StringBase<C>::StringBase(U64 length) : size{ length }
+{
+	Allocate(size);
+}
 
 template<Character C>
 inline StringBase<C>::StringBase(const C* other) : size{ Length(other) }
@@ -106,7 +131,7 @@ template<Character C>
 inline StringBase<C>::StringBase(const StringBase& other) : size{ other.size }
 {
 	Allocate(size);
-	Copy(string, other.string, size);
+	Copy(string, other.string, size + 1);
 }
 
 template<Character C>
@@ -145,7 +170,7 @@ inline StringBase<C>& StringBase<C>::operator=(const StringBase& other)
 	size = other.size;
 
 	Reallocate(size);
-	Copy(string, other.string, size);
+	Copy(string, other.string, size + 1);
 
 	return *this;
 }
@@ -166,22 +191,6 @@ inline StringBase<C>& StringBase<C>::operator=(StringBase&& other) noexcept
 	other.string = nullptr;
 
 	return *this;
-}
-
-template<Character C>
-inline StringBase<C> StringBase<C>::SubString(U64 start, U64 length) const
-{
-	if (length != U64_MAX)
-	{
-		StringBase<C> str(string + start, length);
-		str.string[length] = '\0';
-		return Move(str);
-	}
-	else
-	{
-		StringBase<C> str(string + start, size - start);
-		return Move(str);
-	}
 }
 
 template<Character C>
@@ -219,6 +228,113 @@ template<Character C>
 inline void StringBase<C>::Reserve(U64 capacity)
 {
 	Reallocate(capacity);
+}
+
+template<Character C>
+inline StringBase<C> StringBase<C>::SubString(U64 start, U64 length) const
+{
+	if (length != U64_MAX)
+	{
+		StringBase<C> str(string + start, length);
+		str.string[length] = '\0';
+		return Move(str);
+	}
+	else
+	{
+		StringBase<C> str(string + start, size - start);
+		return Move(str);
+	}
+}
+
+template<Character C>
+inline StringBase<C> StringBase<C>::Appended(const StringBase<C>& append) const
+{
+	StringBase<C> str(size + append.Size());
+	Copy(str.Data(), string, size);
+	Copy(str.Data() + size, append.Data(), append.Size());
+	str.Data()[str.Size()] = '\0';
+
+	return Move(str);
+}
+
+template<Character C>
+inline StringBase<C> StringBase<C>::Prepended(const StringBase<C>& prepend) const
+{
+	StringBase<C> str(size + prepend.Size());
+	Copy(str.Data(), prepend.Data(), prepend.Size());
+	Copy(str.Data() + prepend.Size(), string, size);
+	str.Data()[str.Size()] = '\0';
+
+	return Move(str);
+}
+
+template<Character C>
+inline StringBase<C> StringBase<C>::Surrounded(const StringBase<C>& prepend, const StringBase<C>& append) const
+{
+	StringBase<C> str(size + prepend.Size() + append.Size());
+	Copy(str.Data(), prepend.Data(), prepend.Size());
+	Copy(str.Data() + prepend.Size(), string, size);
+	Copy(str.Data() + prepend.Size() + size, append.Data(), append.Size());
+	str.Data()[str.Size()] = '\0';
+
+	return Move(str);
+}
+
+template<Character C>
+inline StringBase<C>& StringBase<C>::Shave(U64 start, U64 length)
+{
+	if (length != U64_MAX)
+	{
+		Copy(string, string + start, length);
+		size = length;
+		string[length] = '\0';
+		return *this;
+	}
+	else
+	{
+		Copy(string, string + start, size - start + 1);
+		size -= start + 1;
+		return *this;
+	}
+}
+
+template<Character C>
+inline StringBase<C>& StringBase<C>::Append(const StringBase<C>& append)
+{
+	if (size + append.Size() >= capacity) { Reallocate(size + append.Size() + 1); }
+
+	Copy(string + size, append.Data(), append.Size());
+	size += append.Size();
+	string[size] = '\0';
+
+	return *this;
+}
+
+template<Character C>
+inline StringBase<C>& StringBase<C>::Prepend(const StringBase<C>& prepend)
+{
+	if (size + prepend.Size() >= capacity) { Reallocate(size + prepend.Size() + 1); }
+
+	Copy(string + prepend.Size(), string, size);
+	Copy(string, prepend.Data(), prepend.Size());
+	size += prepend.Size();
+	string[size] = '\0';
+
+	return *this;
+}
+
+template<Character C>
+inline StringBase<C>& StringBase<C>::Surround(const StringBase<C>& prepend, const StringBase<C>& append)
+{
+	if (size + prepend.Size() + append.Size() >= capacity) { Reallocate(size + prepend.Size() + append.Size() + 1); }
+
+	Copy(string + prepend.Size(), string, size);
+	Copy(string, prepend.Data(), prepend.Size());
+	Copy(string + prepend.Size() + size, append.Data(), append.Size());
+	size += prepend.Size() + append.Size();
+	string[size] = '\0';
+
+	return *this;
 }
 
 template<Character C>
@@ -353,19 +469,11 @@ inline const C* StringBase<C>::rend() const
 
 //Helpers
 template<Character C>
-inline void StringBase<C>::Copy(C* dst, const C* src, U64 length)
-{
-	constexpr U64 size = sizeof(C);
-	memcpy(dst, src, length * size);
-}
-
-template<Character C>
 inline void StringBase<C>::Allocate(U64 length)
 {
 	constexpr U64 size = sizeof(C);
 
-	capacity = BitCeiling(length);
-	capacity = capacity < 1024 ? 1024 : capacity;
+	capacity = length < 1024 ? 1024 : BitCeiling(length);
 
 	string = (C*)malloc(capacity * size);
 }
@@ -377,8 +485,7 @@ inline void StringBase<C>::Reallocate(U64 length)
 
 	if (length <= capacity) { return; }
 
-	capacity = BitCeiling(length);
-	capacity = capacity < 1024 ? 1024 : capacity;
+	capacity = length < 1024 ? 1024 : BitCeiling(length);
 
 	if (string) { string = (C*)realloc(string, capacity * size); }
 	else { string = (C*)malloc(capacity * size); }

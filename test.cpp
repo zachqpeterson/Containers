@@ -1224,6 +1224,25 @@ void StringInit_Blank()
 	END_TEST;
 }
 
+void StringInit_NullPointer()
+{
+	BEGIN_TEST;
+
+	String str0(nullptr);
+	String8 str1(nullptr);
+	String16 str2(nullptr);
+	String32 str3(nullptr);
+	StringW str4(nullptr);
+
+	passed = str0.Size() == 0 && str0.Capacity() == 0 && str0.Data() == nullptr &&
+		str1.Size() == 0 && str1.Capacity() == 0 && str1.Data() == nullptr &&
+		str2.Size() == 0 && str2.Capacity() == 0 && str2.Data() == nullptr &&
+		str3.Size() == 0 && str3.Capacity() == 0 && str3.Data() == nullptr &&
+		str4.Size() == 0 && str4.Capacity() == 0 && str4.Data() == nullptr;
+
+	END_TEST;
+}
+
 void StringInit_Array()
 {
 	CH* a0 = new CH[10];
@@ -1250,11 +1269,11 @@ void StringInit_Array()
 	String32 str3(a3);
 	StringW str4(a4);
 
-	passed = str0.Size() == 9 && str0.Capacity() == 1024 && Compare(str0.Data(), "defghijkl", 9) &&
-		str1.Size() == 9 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defghijkl", 9) &&
-		str2.Size() == 9 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defghijkl", 9) &&
-		str3.Size() == 9 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defghijkl", 9) &&
-		str4.Size() == 9 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defghijkl", 9);
+	passed = str0.Size() == 9 && str0.Capacity() == 1024 && Compare(str0.Data(), "defghijkl", 10) &&
+		str1.Size() == 9 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defghijkl", 10) &&
+		str2.Size() == 9 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defghijkl", 10) &&
+		str3.Size() == 9 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defghijkl", 10) &&
+		str4.Size() == 9 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defghijkl", 10);
 
 	END_TEST;
 
@@ -1291,11 +1310,11 @@ void StringInit_ArrayLength()
 	String32 str3(a3, 5);
 	StringW str4(a4, 5);
 
-	passed = str0.Size() == 5 && str0.Capacity() == 1024 && Compare(str0.Data(), "defgh", 5) &&
-		str1.Size() == 5 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defgh", 5) &&
-		str2.Size() == 5 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defgh", 5) &&
-		str3.Size() == 5 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defgh", 5) &&
-		str4.Size() == 5 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defgh", 5);
+	passed = str0.Size() == 5 && str0.Capacity() == 1024 && Compare(str0.Data(), "defgh", 6) &&
+		str1.Size() == 5 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defgh", 6) &&
+		str2.Size() == 5 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defgh", 6) &&
+		str3.Size() == 5 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defgh", 6) &&
+		str4.Size() == 5 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defgh", 6);
 
 	END_TEST;
 
@@ -1316,11 +1335,11 @@ void StringInit_Literal()
 	String32 str3(U"👩‍🦰👨‍🦲zß水🍌");
 	StringW str4(L"zß水🍌𐐷Ͼ");
 
-	passed = str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
-		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
-		str2.Size() == 8 && str2.Capacity() == 1024 && Compare(str2.Data(), u"zß水🍌𐐷Ͼ", 8) &&
-		str3.Size() == 10 && str3.Capacity() == 1024 && Compare(str3.Data(), U"👩‍🦰👨‍🦲zß水🍌", 10) &&
-		str4.Size() == 8 && str4.Capacity() == 1024 && Compare(str4.Data(), L"zß水🍌𐐷Ͼ", 8);
+	passed = str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 8 && str2.Capacity() == 1024 && Compare(str2.Data(), u"zß水🍌𐐷Ͼ", 9) &&
+		str3.Size() == 10 && str3.Capacity() == 1024 && Compare(str3.Data(), U"👩‍🦰👨‍🦲zß水🍌", 11) &&
+		str4.Size() == 8 && str4.Capacity() == 1024 && Compare(str4.Data(), L"zß水🍌𐐷Ͼ", 9);
 
 	END_TEST;
 }
@@ -1341,16 +1360,16 @@ void StringInit_Copy()
 	String32 str3(c3);
 	StringW str4(c4);
 
-	passed = c0.Size() == 13 && c0.Capacity() == 1024 && Compare(c0.Data(), "Hello, World!", 13) &&
-		c1.Size() == 13 && c1.Capacity() == 1024 && Compare(c1.Data(), u8"Hello, World!", 13) &&
-		c2.Size() == 13 && c2.Capacity() == 1024 && Compare(c2.Data(), u"Hello, World!", 13) &&
-		c3.Size() == 13 && c3.Capacity() == 1024 && Compare(c3.Data(), U"Hello, World!", 13) &&
-		c4.Size() == 13 && c4.Capacity() == 1024 && Compare(c4.Data(), L"Hello, World!", 13) &&
-		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
-		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
-		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
-		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
-		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13) &&
+	passed = c0.Size() == 13 && c0.Capacity() == 1024 && Compare(c0.Data(), "Hello, World!", 14) &&
+		c1.Size() == 13 && c1.Capacity() == 1024 && Compare(c1.Data(), u8"Hello, World!", 14) &&
+		c2.Size() == 13 && c2.Capacity() == 1024 && Compare(c2.Data(), u"Hello, World!", 14) &&
+		c3.Size() == 13 && c3.Capacity() == 1024 && Compare(c3.Data(), U"Hello, World!", 14) &&
+		c4.Size() == 13 && c4.Capacity() == 1024 && Compare(c4.Data(), L"Hello, World!", 14) &&
+		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 14) &&
 		c0.Data() != str0.Data() && c1.Data() != str1.Data() && c2.Data() != str2.Data() &&
 		c3.Data() != str3.Data() && c4.Data() != str4.Data();
 
@@ -1378,11 +1397,11 @@ void StringInit_Move()
 		c2.Size() == 0 && c2.Capacity() == 0 && c2.Data() == nullptr &&
 		c3.Size() == 0 && c3.Capacity() == 0 && c3.Data() == nullptr &&
 		c4.Size() == 0 && c4.Capacity() == 0 && c4.Data() == nullptr &&
-		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
-		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
-		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
-		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
-		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13);
+		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 14);
 
 	END_TEST;
 }
@@ -1444,11 +1463,11 @@ void StringAssign_Array()
 	str3 = a3;
 	str4 = a4;
 
-	passed = str0.Size() == 9 && str0.Capacity() == 1024 && Compare(str0.Data(), "defghijkl", 9) &&
-		str1.Size() == 9 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defghijkl", 9) &&
-		str2.Size() == 9 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defghijkl", 9) &&
-		str3.Size() == 9 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defghijkl", 9) &&
-		str4.Size() == 9 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defghijkl", 9);
+	passed = str0.Size() == 9 && str0.Capacity() == 1024 && Compare(str0.Data(), "defghijkl", 10) &&
+		str1.Size() == 9 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"defghijkl", 10) &&
+		str2.Size() == 9 && str2.Capacity() == 1024 && Compare(str2.Data(), u"defghijkl", 10) &&
+		str3.Size() == 9 && str3.Capacity() == 1024 && Compare(str3.Data(), U"defghijkl", 10) &&
+		str4.Size() == 9 && str4.Capacity() == 1024 && Compare(str4.Data(), L"defghijkl", 10);
 
 	END_TEST;
 
@@ -1475,11 +1494,11 @@ void StringAssign_Literal()
 	str3 = U"👩‍🦰👨‍🦲zß水🍌";
 	str4 = L"zß水🍌𐐷Ͼ";
 
-	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 15) &&
-		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 15) &&
-		str2.Size() == 8 && str2.Capacity() == 1024 && Compare(str2.Data(), u"zß水🍌𐐷Ͼ", 8) &&
-		str3.Size() == 10 && str3.Capacity() == 1024 && Compare(str3.Data(), U"👩‍🦰👨‍🦲zß水🍌", 10) &&
-		str4.Size() == 8 && str4.Capacity() == 1024 && Compare(str4.Data(), L"zß水🍌𐐷Ͼ", 8);
+	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 16) &&
+		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 16) &&
+		str2.Size() == 8 && str2.Capacity() == 1024 && Compare(str2.Data(), u"zß水🍌𐐷Ͼ", 9) &&
+		str3.Size() == 10 && str3.Capacity() == 1024 && Compare(str3.Data(), U"👩‍🦰👨‍🦲zß水🍌", 11) &&
+		str4.Size() == 8 && str4.Capacity() == 1024 && Compare(str4.Data(), L"zß水🍌𐐷Ͼ", 9);
 
 	END_TEST;
 }
@@ -1508,16 +1527,16 @@ void StringAssign_Copy()
 
 	//TODO: Somehow confirm old ptr was freed
 
-	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 15) &&
-		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 15) &&
-		str2.Size() == 15 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Goodbye, World!", 15) &&
-		str3.Size() == 15 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Goodbye, World!", 15) &&
-		str4.Size() == 15 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Goodbye, World!", 15) &&
-		str5.Size() == 15 && str5.Capacity() == 1024 && Compare(str5.Data(), "Goodbye, World!", 15) &&
-		str6.Size() == 15 && str6.Capacity() == 1024 && Compare(str6.Data(), u8"Goodbye, World!", 15) &&
-		str7.Size() == 15 && str7.Capacity() == 1024 && Compare(str7.Data(), u"Goodbye, World!", 15) &&
-		str8.Size() == 15 && str8.Capacity() == 1024 && Compare(str8.Data(), U"Goodbye, World!", 15) &&
-		str9.Size() == 15 && str9.Capacity() == 1024 && Compare(str9.Data(), L"Goodbye, World!", 15);
+	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 16) &&
+		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 16) &&
+		str2.Size() == 15 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Goodbye, World!", 16) &&
+		str3.Size() == 15 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Goodbye, World!", 16) &&
+		str4.Size() == 15 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Goodbye, World!", 16) &&
+		str5.Size() == 15 && str5.Capacity() == 1024 && Compare(str5.Data(), "Goodbye, World!", 16) &&
+		str6.Size() == 15 && str6.Capacity() == 1024 && Compare(str6.Data(), u8"Goodbye, World!", 16) &&
+		str7.Size() == 15 && str7.Capacity() == 1024 && Compare(str7.Data(), u"Goodbye, World!", 16) &&
+		str8.Size() == 15 && str8.Capacity() == 1024 && Compare(str8.Data(), U"Goodbye, World!", 16) &&
+		str9.Size() == 15 && str9.Capacity() == 1024 && Compare(str9.Data(), L"Goodbye, World!", 16);
 
 	END_TEST;
 }
@@ -1546,11 +1565,11 @@ void StringAssign_CopySelf()
 
 	passed = str0.Data() == p0 && str1.Data() == p1 && str2.Data() == p2 && 
 		str3.Data() == p3 && str4.Data() == p4 && 
-		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
-		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
-		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
-		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
-		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13);
+		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 14);
 
 	END_TEST;
 }
@@ -1579,11 +1598,11 @@ void StringAssign_Move()
 
 	//TODO: Somehow confirm old ptr was freed
 
-	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 15) &&
-		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 15) &&
-		str2.Size() == 15 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Goodbye, World!", 15) &&
-		str3.Size() == 15 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Goodbye, World!", 15) &&
-		str4.Size() == 15 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Goodbye, World!", 15) &&
+	passed = str0.Size() == 15 && str0.Capacity() == 1024 && Compare(str0.Data(), "Goodbye, World!", 16) &&
+		str1.Size() == 15 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Goodbye, World!", 16) &&
+		str2.Size() == 15 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Goodbye, World!", 16) &&
+		str3.Size() == 15 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Goodbye, World!", 16) &&
+		str4.Size() == 15 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Goodbye, World!", 16) &&
 		str5.Size() == 0 && str5.Capacity() == 0 && str5.Data() == nullptr &&
 		str6.Size() == 0 && str6.Capacity() == 0 && str6.Data() == nullptr &&
 		str7.Size() == 0 && str7.Capacity() == 0 && str7.Data() == nullptr &&
@@ -1617,11 +1636,11 @@ void StringAssign_MoveSelf()
 
 	passed = str0.Data() == p0 && str1.Data() == p1 && str2.Data() == p2 &&
 		str3.Data() == p3 && str4.Data() == p4 &&
-		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 13) &&
-		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 13) &&
-		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 13) &&
-		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 13) &&
-		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 13);
+		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 14);
 
 	END_TEST;
 }
@@ -1667,11 +1686,11 @@ void StringClear()
 	str3.Clear();
 	str4.Clear();
 
-	passed = str0.Size() == 0 && str0.Capacity() == 1024 && Compare(str0.Data(), "\0ello, World!", 13) &&
-		str1.Size() == 0 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"\0ello, World!", 13) &&
-		str2.Size() == 0 && str2.Capacity() == 1024 && Compare(str2.Data(), u"\0ello, World!", 13) &&
-		str3.Size() == 0 && str3.Capacity() == 1024 && Compare(str3.Data(), U"\0ello, World!", 13) &&
-		str4.Size() == 0 && str4.Capacity() == 1024 && Compare(str4.Data(), L"\0ello, World!", 13);
+	passed = str0.Size() == 0 && str0.Capacity() == 1024 && Compare(str0.Data(), "\0ello, World!", 14) &&
+		str1.Size() == 0 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"\0ello, World!", 14) &&
+		str2.Size() == 0 && str2.Capacity() == 1024 && Compare(str2.Data(), u"\0ello, World!", 14) &&
+		str3.Size() == 0 && str3.Capacity() == 1024 && Compare(str3.Data(), U"\0ello, World!", 14) &&
+		str4.Size() == 0 && str4.Capacity() == 1024 && Compare(str4.Data(), L"\0ello, World!", 14);
 
 	END_TEST;
 }
@@ -1698,16 +1717,259 @@ void StringResize()
 	str3.Resize();
 	str4.Resize();
 
-	passed = str0.Size() == 5 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello", 5) &&
-		str1.Size() == 5 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello", 5) &&
-		str2.Size() == 5 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello", 5) &&
-		str3.Size() == 5 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello", 5) &&
-		str4.Size() == 5 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello", 5);
+	passed = str0.Size() == 5 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello", 6) &&
+		str1.Size() == 5 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello", 6) &&
+		str2.Size() == 5 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello", 6) &&
+		str3.Size() == 5 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello", 6) &&
+		str4.Size() == 5 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello", 6);
 
 	END_TEST;
 }
 
-//TODO: Reserve
+void StringReserve()
+{
+	BEGIN_TEST;
+
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	str0.Reserve(1025);
+	str1.Reserve(1025);
+	str2.Reserve(1025);
+	str3.Reserve(1025);
+	str4.Reserve(1025);
+
+	passed = str0.Size() == 13 && str0.Capacity() == 2048 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 2048 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 2048 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 2048 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 2048 && Compare(str4.Data(), L"Hello, World!", 14);
+
+	END_TEST;
+}
+
+void StringSubString()
+{
+	BEGIN_TEST;
+
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	String sub0 = Move(str0.SubString(3, 6));
+	String8 sub1 = Move(str1.SubString(3, 6));
+	String16 sub2 = Move(str2.SubString(3, 6));
+	String32 sub3 = Move(str3.SubString(3, 6));
+	StringW sub4 = Move(str4.SubString(3, 6));
+
+	passed = str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 14) &&
+		sub0.Size() == 6 && sub0.Capacity() == 1024 && Compare(sub0.Data(), "lo, Wo", 7) &&
+		sub1.Size() == 6 && sub1.Capacity() == 1024 && Compare(sub1.Data(), u8"lo, Wo", 7) &&
+		sub2.Size() == 6 && sub2.Capacity() == 1024 && Compare(sub2.Data(), u"lo, Wo", 7) &&
+		sub3.Size() == 6 && sub3.Capacity() == 1024 && Compare(sub3.Data(), U"lo, Wo", 7) &&
+		sub4.Size() == 6 && sub4.Capacity() == 1024 && Compare(sub4.Data(), L"lo, Wo", 7);
+
+	END_TEST;
+}
+
+void StringAppended()
+{
+	BEGIN_TEST;
+
+	String str0("Hello");
+	String8 str1(u8"Hello");
+	String16 str2(u"Hello");
+	String32 str3(U"Hello");
+	StringW str4(L"Hello");
+
+	String newStr0 = str0.Appended(", World!");
+	String8 newStr1 = str1.Appended(u8", World!");
+	String16 newStr2 = str2.Appended(u", World!");
+	String32 newStr3 = str3.Appended(U", World!");
+	StringW newStr4 = str4.Appended(L", World!");
+
+	passed = str0.Size() == 5 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello", 6) &&
+		str1.Size() == 5 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello", 6) &&
+		str2.Size() == 5 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello", 6) &&
+		str3.Size() == 5 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello", 6) &&
+		str4.Size() == 5 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello", 6) &&
+		newStr0.Size() == 13 && newStr0.Capacity() == 1024 && Compare(newStr0.Data(), "Hello, World!", 14) &&
+		newStr1.Size() == 13 && newStr1.Capacity() == 1024 && Compare(newStr1.Data(), u8"Hello, World!", 14) &&
+		newStr2.Size() == 13 && newStr2.Capacity() == 1024 && Compare(newStr2.Data(), u"Hello, World!", 14) &&
+		newStr3.Size() == 13 && newStr3.Capacity() == 1024 && Compare(newStr3.Data(), U"Hello, World!", 14) &&
+		newStr4.Size() == 13 && newStr4.Capacity() == 1024 && Compare(newStr4.Data(), L"Hello, World!", 14);
+
+	END_TEST;
+}
+
+void StringPrepended()
+{
+	BEGIN_TEST;
+
+	String str0("World!");
+	String8 str1(u8"World!");
+	String16 str2(u"World!");
+	String32 str3(U"World!");
+	StringW str4(L"World!");
+
+	String newStr0 = str0.Prepended("Hello, ");
+	String8 newStr1 = str1.Prepended(u8"Hello, ");
+	String16 newStr2 = str2.Prepended(u"Hello, ");
+	String32 newStr3 = str3.Prepended(U"Hello, ");
+	StringW newStr4 = str4.Prepended(L"Hello, ");
+
+	passed = str0.Size() == 6 && str0.Capacity() == 1024 && Compare(str0.Data(), "World!", 7) &&
+		str1.Size() == 6 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"World!", 7) &&
+		str2.Size() == 6 && str2.Capacity() == 1024 && Compare(str2.Data(), u"World!", 7) &&
+		str3.Size() == 6 && str3.Capacity() == 1024 && Compare(str3.Data(), U"World!", 7) &&
+		str4.Size() == 6 && str4.Capacity() == 1024 && Compare(str4.Data(), L"World!", 7) &&
+		newStr0.Size() == 13 && newStr0.Capacity() == 1024 && Compare(newStr0.Data(), "Hello, World!", 14) &&
+		newStr1.Size() == 13 && newStr1.Capacity() == 1024 && Compare(newStr1.Data(), u8"Hello, World!", 14) &&
+		newStr2.Size() == 13 && newStr2.Capacity() == 1024 && Compare(newStr2.Data(), u"Hello, World!", 14) &&
+		newStr3.Size() == 13 && newStr3.Capacity() == 1024 && Compare(newStr3.Data(), U"Hello, World!", 14) &&
+		newStr4.Size() == 13 && newStr4.Capacity() == 1024 && Compare(newStr4.Data(), L"Hello, World!", 14);
+
+	END_TEST;
+}
+
+void StringSurrounded()
+{
+	BEGIN_TEST;
+
+	String str0(", ");
+	String8 str1(u8", ");
+	String16 str2(u", ");
+	String32 str3(U", ");
+	StringW str4(L", ");
+
+	String newStr0 = str0.Surrounded("Hello", "World!");
+	String8 newStr1 = str1.Surrounded(u8"Hello", u8"World!");
+	String16 newStr2 = str2.Surrounded(u"Hello", u"World!");
+	String32 newStr3 = str3.Surrounded(U"Hello", U"World!");
+	StringW newStr4 = str4.Surrounded(L"Hello", L"World!");
+
+	passed = str0.Size() == 2 && str0.Capacity() == 1024 && Compare(str0.Data(), ", ", 3) &&
+		str1.Size() == 2 && str1.Capacity() == 1024 && Compare(str1.Data(), u8", ", 3) &&
+		str2.Size() == 2 && str2.Capacity() == 1024 && Compare(str2.Data(), u", ", 3) &&
+		str3.Size() == 2 && str3.Capacity() == 1024 && Compare(str3.Data(), U", ", 3) &&
+		str4.Size() == 2 && str4.Capacity() == 1024 && Compare(str4.Data(), L", ", 3) &&
+		newStr0.Size() == 13 && newStr0.Capacity() == 1024 && Compare(newStr0.Data(), "Hello, World!", 14) &&
+		newStr1.Size() == 13 && newStr1.Capacity() == 1024 && Compare(newStr1.Data(), u8"Hello, World!", 14) &&
+		newStr2.Size() == 13 && newStr2.Capacity() == 1024 && Compare(newStr2.Data(), u"Hello, World!", 14) &&
+		newStr3.Size() == 13 && newStr3.Capacity() == 1024 && Compare(newStr3.Data(), U"Hello, World!", 14) &&
+		newStr4.Size() == 13 && newStr4.Capacity() == 1024 && Compare(newStr4.Data(), L"Hello, World!", 14);
+
+	END_TEST;
+}
+
+void StringShave()
+{
+	BEGIN_TEST;
+
+	String str0("Hello, World!");
+	String8 str1(u8"Hello, World!");
+	String16 str2(u"Hello, World!");
+	String32 str3(U"Hello, World!");
+	StringW str4(L"Hello, World!");
+
+	str0.Shave(3, 6);
+	str1.Shave(3, 6);
+	str2.Shave(3, 6);
+	str3.Shave(3, 6);
+	str4.Shave(3, 6);
+
+	passed = str0.Size() == 6 && str0.Capacity() == 1024 && Compare(str0.Data(), "lo, Wo", 7) &&
+		str1.Size() == 6 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"lo, Wo", 7) &&
+		str2.Size() == 6 && str2.Capacity() == 1024 && Compare(str2.Data(), u"lo, Wo", 7) &&
+		str3.Size() == 6 && str3.Capacity() == 1024 && Compare(str3.Data(), U"lo, Wo", 7) &&
+		str4.Size() == 6 && str4.Capacity() == 1024 && Compare(str4.Data(), L"lo, Wo", 7);
+
+	END_TEST;
+}
+
+void StringAppend()
+{
+	BEGIN_TEST;
+
+	String str0("Hello");
+	String8 str1(u8"Hello");
+	String16 str2(u"Hello");
+	String32 str3(U"Hello");
+	StringW str4(L"Hello");
+
+	str0.Append(", World!");
+	str1.Append(u8", World!");
+	str2.Append(u", World!");
+	str3.Append(U", World!");
+	str4.Append(L", World!");
+
+	passed = str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 14);
+
+	END_TEST;
+}
+
+void StringPrepend()
+{
+	BEGIN_TEST;
+
+	String str0("World!");
+	String8 str1(u8"World!");
+	String16 str2(u"World!");
+	String32 str3(U"World!");
+	StringW str4(L"World!");
+
+	str0.Prepend("Hello, ");
+	str1.Prepend(u8"Hello, ");
+	str2.Prepend(u"Hello, ");
+	str3.Prepend(U"Hello, ");
+	str4.Prepend(L"Hello, ");
+
+	passed = str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 14);
+
+	END_TEST;
+}
+
+void StringSurround()
+{
+	BEGIN_TEST;
+
+	String str0(", ");
+	String8 str1(u8", ");
+	String16 str2(u", ");
+	String32 str3(U", ");
+	StringW str4(L", ");
+
+	str0.Surround("Hello", "World!");
+	str1.Surround(u8"Hello", u8"World!");
+	str2.Surround(u"Hello", u"World!");
+	str3.Surround(U"Hello", U"World!");
+	str4.Surround(L"Hello", L"World!");
+
+	passed = str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
+		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
+		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
+		str3.Size() == 13 && str3.Capacity() == 1024 && Compare(str3.Data(), U"Hello, World!", 14) &&
+		str4.Size() == 13 && str4.Capacity() == 1024 && Compare(str4.Data(), L"Hello, World!", 14);
+
+	END_TEST;
+}
 
 void StringBlank()
 {
@@ -1736,6 +1998,48 @@ void StringBlank()
 	END_TEST;
 }
 
+void StringIndexOf()
+{
+	BEGIN_TEST;
+
+	END_TEST;
+}
+
+void StringLastIndexOf()
+{
+	BEGIN_TEST;
+
+	END_TEST;
+}
+
+void StringTrim()
+{
+	BEGIN_TEST;
+
+	END_TEST;
+}
+
+void StringToUpper()
+{
+	BEGIN_TEST;
+
+	END_TEST;
+}
+
+void StringToLower()
+{
+	BEGIN_TEST;
+
+	END_TEST;
+}
+
+void StringToCapital()
+{
+	BEGIN_TEST;
+
+	END_TEST;
+}
+
 #pragma endregion
 
 int main()
@@ -1745,6 +2049,7 @@ int main()
 #pragma region String Tests
 	printf("STRING TESTS: \n");
 	StringInit_Blank();
+	StringInit_NullPointer();
 	StringInit_Array();
 	StringInit_ArrayLength();
 	StringInit_Literal();
@@ -1760,10 +2065,25 @@ int main()
 	StringDestroy();
 	StringClear();
 	StringResize();
-
+	StringReserve();
+	StringSubString();
+	StringAppended();
+	StringPrepended();
+	StringSurrounded();
+	StringShave();
+	StringAppend();
+	StringPrepend();
+	StringSurround();
 	StringBlank();
+	StringIndexOf();
+	StringLastIndexOf();
+	StringTrim();
+	StringToUpper();
+	StringToLower();
+	StringToCapital();
 #pragma endregion
 
+	return 0;
 #pragma region Vector Tests
 	printf("\nVECTOR TESTS: \n");
 	VectorInit_Blank();
