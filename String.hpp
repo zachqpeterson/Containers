@@ -1,7 +1,9 @@
 #pragma once
 
-#include "Defines.hpp"
+#include "ContainerDefines.hpp"
 #include "TypeTraits.hpp"
+
+#include <string>
 
 template<Character C> struct StringBase;
 

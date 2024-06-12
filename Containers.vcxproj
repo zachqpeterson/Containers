@@ -131,19 +131,19 @@
   <ItemGroup>
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="Array.h" />
-    <ClInclude Include="Defines.hpp" />
+    <ClInclude Include="ContainerDefines.hpp" />
     <ClInclude Include="Freelist.h" />
     <ClInclude Include="Hashmap.h" />
-    <ClInclude Include="Initiazer.h" />
     <ClInclude Include="List.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Queue.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="String.hpp" />
     <ClInclude Include="TypeTraits.hpp" />
-    <ClInclude Include="Vector.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Containers-Vector.ixx" />
+    <ClCompile Include="Containers.ixx" />
     <ClCompile Include="test.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

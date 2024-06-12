@@ -1,8 +1,7 @@
-﻿#include "Vector.hpp"
+﻿import Containers;
+
 #include "List.h"
 #include "String.hpp"
-#include "Initiazer.h"
-#include "Defines.hpp"
 
 #include <Windows.h>
 #include <stdio.h>
@@ -14,20 +13,20 @@ bool passed = false;			\
 LARGE_INTEGER start;			\
 QueryPerformanceCounter(&start);
 
-template<U64 Count> constexpr U64 Length(const char(&)[Count]) { return Count; }
+template<unsigned long long Count> constexpr unsigned long long Length(const char(&)[Count]) { return Count; }
 
 #define END_TEST																		\
 LARGE_INTEGER end;																		\
 QueryPerformanceCounter(&end);															\
-F64 time = (F64)(end.QuadPart - start.QuadPart) / (F64)freq.QuadPart;					\
-constexpr U64 len = Length(__FUNCTION__);												\
+double time = (double)(end.QuadPart - start.QuadPart) / (double)freq.QuadPart;					\
+constexpr unsigned long long len = Length(__FUNCTION__);												\
 char name[len + 2] = __FUNCTION__;														\
 name[len] = ':';																		\
 name[len + 1] = '\0';																	\
 printf("%-35s %s  |  Time taken: %fs\n", name, passed ? "\033[32mPASSED\033[0m" : "\033[31mFAILED\033[0m", time);
 
 template<typename T>
-bool Compare(const T* a, const T* b, U64 length)
+bool Compare(const T* a, const T* b, unsigned long long length)
 {
 	while (length--) { if (*a++ != *b++) { return false; } }
 
@@ -36,9 +35,9 @@ bool Compare(const T* a, const T* b, U64 length)
 
 LARGE_INTEGER freq;
 
-bool Pred0(U64 i) { return i == 2; }
+bool Pred0(unsigned long long i) { return i == 2; }
 
-bool Pred1(U64 i) { return i < 5; }
+bool Pred1(unsigned long long i) { return i < 5; }
 
 #pragma region Vector Tests
 void VectorInit_Blank()
@@ -47,8 +46,8 @@ void VectorInit_Blank()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0;
-	Vector<I32*> v1;
+	Vector<int> v0;
+	Vector<int*> v1;
 
 	passed = v0.Size() == 0 && v0.Capacity() == 0 && v0.Data() == nullptr &&
 		v1.Size() == 0 && v1.Capacity() == 0 && v1.Data() == nullptr;
@@ -63,18 +62,18 @@ void VectorInit_Capacity()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
-	Vector<I32*> v1(10);
+	Vector<int> v0(10);
+	Vector<int*> v1(10);
 
 	passed = v0.Size() == 0 && v0.Capacity() == 10 && v0.Data() &&
 		v1.Size() == 0 && v1.Capacity() == 10 && v1.Data();
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		passed = false;
 	}
 
-	for (I32* i : v1)
+	for (int* i : v1)
 	{
 		passed = false;
 	}
@@ -90,18 +89,18 @@ void VectorInit_Size()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32*> v1(10, new I32(1));
+	Vector<int> v0(10, 1);
+	Vector<int*> v1(10, new int(1));
 
 	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data() &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data();
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		if (i != 1) { passed = false; }
 	}
 
-	for (I32* i : v1)
+	for (int* i : v1)
 	{
 		if (i == nullptr || *i != 1) { passed = false; }
 	}
@@ -117,32 +116,32 @@ void VectorInit_Copy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1(v0);
-	Vector<I32*> v2(10, new I32(1));
-	Vector<I32*> v3(v2);
+	Vector<int> v0(10, 1);
+	Vector<int> v1(v0);
+	Vector<int*> v2(10, new int(1));
+	Vector<int*> v3(v2);
 
 	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data() &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data() &&
 		v2.Size() == 10 && v2.Capacity() == 10 && v2.Data() &&
 		v3.Size() == 10 && v3.Capacity() == 10 && v3.Data();
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		if (i != 1) { passed = false; }
 	}
 
-	for (I32 i : v1)
+	for (int i : v1)
 	{
 		if (i != 1) { passed = false; }
 	}
 
-	for (I32* i : v2)
+	for (int* i : v2)
 	{
 		if (i == nullptr || *i != 1) { passed = false; }
 	}
 
-	for (I32* i : v3)
+	for (int* i : v3)
 	{
 		if (i == nullptr || *i != 1) { passed = false; }
 	}
@@ -158,32 +157,32 @@ void VectorInit_Move()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1(Move(v0));
-	Vector<I32*> v2(10, new I32(1));
-	Vector<I32*> v3(Move(v2));
+	Vector<int> v0(10, 1);
+	Vector<int> v1(Move(v0));
+	Vector<int*> v2(10, new int(1));
+	Vector<int*> v3(Move(v2));
 
 	passed = v0.Size() == 0 && v0.Capacity() == 0 && v0.Data() == nullptr &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data() &&
 		v2.Size() == 0 && v2.Capacity() == 0 && v2.Data() == nullptr &&
 		v3.Size() == 10 && v3.Capacity() == 10 && v3.Data();
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		passed = false;
 	}
 
-	for (I32 i : v1)
+	for (int i : v1)
 	{
 		if (i != 1) { passed = false; }
 	}
 
-	for (I32* i : v2)
+	for (int* i : v2)
 	{
 		passed = false;
 	}
 
-	for (I32* i : v3)
+	for (int* i : v3)
 	{
 		if (i == nullptr || *i != 1) { passed = false; }
 	}
@@ -199,13 +198,11 @@ void VectorInit_Initializer()
 
 	/*** START TEST ***/
 
-	Initializer<I32, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1> init;
-
-	Vector<I32> v0(init);
+	Vector<int> v0{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data();
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		if (i != 1) { passed = false; }
 	}
@@ -221,32 +218,32 @@ void VectorAssign_Copy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1 = v0;
-	Vector<I32*> v2(10, new I32(1));
-	Vector<I32*> v3 = v2;
+	Vector<int> v0(10, 1);
+	Vector<int> v1 = v0;
+	Vector<int*> v2(10, new int(1));
+	Vector<int*> v3 = v2;
 
 	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data() &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data() &&
 		v2.Size() == 10 && v2.Capacity() == 10 && v2.Data() &&
 		v3.Size() == 10 && v3.Capacity() == 10 && v3.Data();
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		if (i != 1) { passed = false; }
 	}
 
-	for (I32 i : v1)
+	for (int i : v1)
 	{
 		if (i != 1) { passed = false; }
 	}
 
-	for (I32* i : v2)
+	for (int* i : v2)
 	{
 		if (i == nullptr || *i != 1) { passed = false; }
 	}
 
-	for (I32* i : v3)
+	for (int* i : v3)
 	{
 		if (i == nullptr || *i != 1) { passed = false; }
 	}
@@ -262,32 +259,32 @@ void VectorAssign_Move()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1 = Move(v0);
-	Vector<I32*> v2(10, new I32(1));
-	Vector<I32*> v3 = Move(v2);
+	Vector<int> v0(10, 1);
+	Vector<int> v1 = Move(v0);
+	Vector<int*> v2(10, new int(1));
+	Vector<int*> v3 = Move(v2);
 
 	passed = v0.Size() == 0 && v0.Capacity() == 0 && v0.Data() == nullptr &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data() &&
 		v2.Size() == 0 && v2.Capacity() == 0 && v2.Data() == nullptr &&
 		v3.Size() == 10 && v3.Capacity() == 10 && v3.Data();
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		passed = false;
 	}
 
-	for (I32 i : v1)
+	for (int i : v1)
 	{
 		if (i != 1) { passed = false; }
 	}
 
-	for (I32* i : v2)
+	for (int* i : v2)
 	{
 		passed = false;
 	}
 
-	for (I32* i : v3)
+	for (int* i : v3)
 	{
 		if (i == nullptr || *i != 1) { passed = false; }
 	}
@@ -302,14 +299,13 @@ void VectorAssign_Initializer()
 	BEGIN_TEST;
 
 	/*** START TEST ***/
+	Vector<int> v0;
 
-	Initializer<I32, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1> init;
-
-	Vector<I32> v0 = init;
+	v0 = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data();
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		if (i != 1) { passed = false; }
 	}
@@ -325,13 +321,13 @@ void VectorDestroy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(1, 10);
+	Vector<int> v0(1, 10);
 
 	v0.Destroy();
 
 	passed = v0.Size() == 0 && v0.Capacity() == 0 && v0.Data() == nullptr;
 
-	for (I32 i : v0)
+	for (int i : v0)
 	{
 		passed = false;
 	}
@@ -347,11 +343,11 @@ void VectorNewDelete()
 
 	/*** START TEST ***/
 
-	Vector<I32>* v0 = new Vector<I32>(10, 1);
+	Vector<int>* v0 = new Vector<int>(10, 1);
 
 	passed = v0 && v0->Size() == 10 && v0->Capacity() == 10 && v0->Data();
 
-	for (I32 i : *v0)
+	for (int i : *v0)
 	{
 		if (i != 1) { passed = false; }
 	}
@@ -369,9 +365,9 @@ void VectorPush_Copy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0;
+	Vector<int> v0;
 
-	for (I32 i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		v0.Push(i);
 		passed &= v0.Size() == i + 1 && v0.Capacity() >= v0.Size() && v0.Data() && v0[i] == i;
@@ -388,9 +384,9 @@ void VectorPush_Move()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0;
+	Vector<int> v0;
 
-	for (I32 i = 0; i < 10; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		v0.Push(Move(i));
 		passed &= v0.Size() == i + 1 && v0.Capacity() >= v0.Size() && v0.Data() && v0[i] == i;
@@ -407,11 +403,11 @@ void VectorPop()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
+	Vector<int> v0(10, 1);
 
-	U64 cap = v0.Capacity();
+	unsigned long long cap = v0.Capacity();
 
-	for (U64 i = 10; i > 0; --i)
+	for (unsigned long long i = 10; i > 0; --i)
 	{
 		v0.Pop();
 		passed &= v0.Size() == i - 1 && v0.Capacity() == cap && v0.Data();
@@ -428,36 +424,14 @@ void VectorPop_Copy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
+	Vector<int> v0(10, 1);
 
-	U64 cap = v0.Capacity();
+	unsigned long long cap = v0.Capacity();
 
-	for (U64 i = 10; i > 0; --i)
+	for (unsigned long long i = 10; i > 0; --i)
 	{
-		I32 j;
+		int j;
 		v0.Pop(j);
-		passed &= j == 1 && v0.Size() == i - 1 && v0.Capacity() == cap && v0.Data();
-	}
-
-	/*** END TEST ***/
-
-	END_TEST
-}
-
-void VectorPop_Move()
-{
-	BEGIN_TEST;
-
-	/*** START TEST ***/
-
-	Vector<I32> v0(10, 1);
-
-	U64 cap = v0.Capacity();
-
-	for (U64 i = 10; i > 0; --i)
-	{
-		I32 j;
-		v0.Pop(Move(j));
 		passed &= j == 1 && v0.Size() == i - 1 && v0.Capacity() == cap && v0.Data();
 	}
 
@@ -472,9 +446,9 @@ void VectorInsert_Copy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
+	Vector<int> v0(10, 1);
 
-	I32 i = 2;
+	int i = 2;
 	v0.Insert(5, i);
 
 	passed = v0.Size() == 11 && v0.Capacity() >= v0.Size() && v0.Data() && v0[5] == 2;
@@ -498,7 +472,7 @@ void VectorInsert_Move()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
+	Vector<int> v0(10, 1);
 
 	v0.Insert(5, 2);
 
@@ -523,40 +497,40 @@ void VectorInsert_CopyVector()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1(10, 2);
-	Vector<I32> v2(10, 3);
-	Vector<I32> v3(10, 4);
+	Vector<int> v0(10, 1);
+	Vector<int> v1(10, 2);
+	Vector<int> v2(10, 3);
+	Vector<int> v3(10, 4);
 
 	v0.Insert(5, v1);
 
 	passed = v0.Size() == 20 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data();
 
-	for (I32 i = 0; i < 5; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 5; i < 15; ++i) { passed &= v0[i] == 2; }
-	for (I32 i = 15; i < 20; ++i) { passed &= v0[i] == 1; }
+	for (int i = 0; i < 5; ++i) { passed &= v0[i] == 1; }
+	for (int i = 5; i < 15; ++i) { passed &= v0[i] == 2; }
+	for (int i = 15; i < 20; ++i) { passed &= v0[i] == 1; }
 
 	v0.Insert(0, v2);
 
 	passed &= v0.Size() == 30 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v2.Size() == 10 && v2.Capacity() == 10 && v2.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 3; }
-	for (I32 i = 10; i < 15; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
-	for (I32 i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 3; }
+	for (int i = 10; i < 15; ++i) { passed &= v0[i] == 1; }
+	for (int i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
+	for (int i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
 
 	v0.Insert(v0.Size(), v3);
 
 	passed &= v0.Size() == 40 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v3.Size() == 10 && v3.Capacity() == 10 && v3.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 3; }
-	for (I32 i = 10; i < 15; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
-	for (I32 i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 30; i < 40; ++i) { passed &= v0[i] == 4; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 3; }
+	for (int i = 10; i < 15; ++i) { passed &= v0[i] == 1; }
+	for (int i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
+	for (int i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
+	for (int i = 30; i < 40; ++i) { passed &= v0[i] == 4; }
 
 	/*** END TEST ***/
 
@@ -569,40 +543,40 @@ void VectorInsert_MoveVector()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1(10, 2);
-	Vector<I32> v2(10, 3);
-	Vector<I32> v3(10, 4);
+	Vector<int> v0(10, 1);
+	Vector<int> v1(10, 2);
+	Vector<int> v2(10, 3);
+	Vector<int> v3(10, 4);
 
 	v0.Insert(5, Move(v1));
 
 	passed = v0.Size() == 20 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v1.Size() == 0 && v1.Capacity() == 0 && !v1.Data();
 
-	for (I32 i = 0; i < 5; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 5; i < 15; ++i) { passed &= v0[i] == 2; }
-	for (I32 i = 15; i < 20; ++i) { passed &= v0[i] == 1; }
+	for (int i = 0; i < 5; ++i) { passed &= v0[i] == 1; }
+	for (int i = 5; i < 15; ++i) { passed &= v0[i] == 2; }
+	for (int i = 15; i < 20; ++i) { passed &= v0[i] == 1; }
 
 	v0.Insert(0, Move(v2));
 
 	passed &= v0.Size() == 30 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v2.Size() == 0 && v2.Capacity() == 0 && !v2.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 3; }
-	for (I32 i = 10; i < 15; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
-	for (I32 i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 3; }
+	for (int i = 10; i < 15; ++i) { passed &= v0[i] == 1; }
+	for (int i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
+	for (int i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
 
 	v0.Insert(v0.Size(), Move(v3));
 
 	passed &= v0.Size() == 40 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v3.Size() == 0 && v3.Capacity() == 0 && !v3.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 3; }
-	for (I32 i = 10; i < 15; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
-	for (I32 i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 30; i < 40; ++i) { passed &= v0[i] == 4; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 3; }
+	for (int i = 10; i < 15; ++i) { passed &= v0[i] == 1; }
+	for (int i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
+	for (int i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
+	for (int i = 30; i < 40; ++i) { passed &= v0[i] == 4; }
 
 	/*** END TEST ***/
 
@@ -615,9 +589,9 @@ void VectorRemove()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
+	Vector<int> v0(10);
 
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i); }
+	for (int i = 1; i <= 10; ++i) { v0.Push(i); }
 
 	v0.Remove(5);
 
@@ -642,11 +616,11 @@ void VectorRemove_Copy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
+	Vector<int> v0(10);
 
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i); }
+	for (int i = 1; i <= 10; ++i) { v0.Push(i); }
 
-	I32 i;
+	int i;
 	v0.Remove(5, i);
 
 	passed = v0.Size() == 9 && v0.Capacity() == 10 && v0.Data() && v0[5] == 7 && i == 6;
@@ -664,73 +638,45 @@ void VectorRemove_Copy()
 	END_TEST
 }
 
-void VectorRemove_Move()
-{
-	BEGIN_TEST;
-
-	/*** START TEST ***/
-
-	Vector<I32> v0(10);
-
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i); }
-
-	I32 i;
-	v0.Remove(5, Move(i));
-
-	passed = v0.Size() == 9 && v0.Capacity() == 10 && v0.Data() && v0[5] == 7 && i == 6;
-
-	v0.Remove(0, Move(i));
-
-	passed &= v0.Size() == 8 && v0.Capacity() == 10 && v0.Data() && v0[0] == 2 && i == 1;
-
-	v0.Remove(v0.Size() - 1, Move(i));
-
-	passed &= v0.Size() == 7 && v0.Capacity() == 10 && v0.Data() && v0[6] == 9 && i == 10;
-
-	/*** END TEST ***/
-
-	END_TEST
-}
-
 void VectorErase()
 {
 	BEGIN_TEST;
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i); }
+	Vector<int> v0(10);
+	for (int i = 1; i <= 10; ++i) { v0.Push(i); }
 
 	v0.Erase(5, 7);
 
 	passed = v0.Size() == 8 && v0.Capacity() == 10 && v0.Data();
 
-	for (I32 i = 0; i < 5; ++i) { passed &= v0[i] == i + 1; }
-	for (I32 i = 5; i < 8; ++i) { passed &= v0[i] == i + 3; }
+	for (int i = 0; i < 5; ++i) { passed &= v0[i] == i + 1; }
+	for (int i = 5; i < 8; ++i) { passed &= v0[i] == i + 3; }
 
 	/*** END TEST ***/
 
 	END_TEST
 }
 
-void VectorErase_Copy()
+void VectorSteal()
 {
 	BEGIN_TEST;
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i); }
-	Vector<I32> v1;
+	Vector<int> v0(10);
+	for (int i = 1; i <= 10; ++i) { v0.Push(i); }
+	Vector<int> v1;
 
-	v0.Erase(5, 7, v1);
+	v0.Steal(5, 7, v1);
 
 	passed = v0.Size() == 8 && v0.Capacity() == 10 && v0.Data() &&
 		v1.Size() == 2 && v1.Capacity() == 2 && v1.Data();
 
-	for (I32 i = 0; i < 5; ++i) { passed &= v0[i] == i + 1; }
-	for (I32 i = 5; i < 8; ++i) { passed &= v0[i] == i + 3; }
-	for (I32 i = 0; i < 2; ++i) { passed &= v1[i] == i + 6; }
+	for (int i = 0; i < 5; ++i) { passed &= v0[i] == i + 1; }
+	for (int i = 5; i < 8; ++i) { passed &= v0[i] == i + 3; }
+	for (int i = 0; i < 2; ++i) { passed &= v1[i] == i + 6; }
 
 	/*** END TEST ***/
 
@@ -743,8 +689,8 @@ void VectorSplit()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1;
+	Vector<int> v0(10, 1);
+	Vector<int> v1;
 
 	v0.Split(5, v1);
 
@@ -762,16 +708,16 @@ void VectorMerge_Copy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1(10, 2);
+	Vector<int> v0(10, 1);
+	Vector<int> v1(10, 2);
 
 	v0.Merge(v1);
 
 	passed = v0.Size() == 20 && v0.Capacity() == 20 && v0.Data() &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 10; i < 20; ++i) { passed &= v0[i] == 2; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 1; }
+	for (int i = 10; i < 20; ++i) { passed &= v0[i] == 2; }
 
 	/*** END TEST ***/
 
@@ -784,16 +730,16 @@ void VectorMerge_Move()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1(10, 2);
+	Vector<int> v0(10, 1);
+	Vector<int> v1(10, 2);
 
 	v0.Merge(Move(v1));
 
 	passed = v0.Size() == 20 && v0.Capacity() == 20 && v0.Data() &&
 		v1.Size() == 0 && v1.Capacity() == 0 && !v1.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 10; i < 20; ++i) { passed &= v0[i] == 2; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 1; }
+	for (int i = 10; i < 20; ++i) { passed &= v0[i] == 2; }
 
 	/*** END TEST ***/
 
@@ -806,16 +752,16 @@ void VectorAdd_Copy()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1(10, 2);
+	Vector<int> v0(10, 1);
+	Vector<int> v1(10, 2);
 
 	v0 += v1;
 
 	passed = v0.Size() == 20 && v0.Capacity() == 20 && v0.Data() &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 10; i < 20; ++i) { passed &= v0[i] == 2; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 1; }
+	for (int i = 10; i < 20; ++i) { passed &= v0[i] == 2; }
 
 	/*** END TEST ***/
 
@@ -828,16 +774,16 @@ void VectorAdd_Move()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
-	Vector<I32> v1(10, 2);
+	Vector<int> v0(10, 1);
+	Vector<int> v1(10, 2);
 
 	v0 += Move(v1);
 
 	passed = v0.Size() == 20 && v0.Capacity() == 20 && v0.Data() &&
 		v1.Size() == 0 && v1.Capacity() == 0 && !v1.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 1; }
-	for (I32 i = 10; i < 20; ++i) { passed &= v0[i] == 2; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 1; }
+	for (int i = 10; i < 20; ++i) { passed &= v0[i] == 2; }
 
 	/*** END TEST ***/
 
@@ -850,19 +796,19 @@ void VectorPredicate_SearchFor()
 
 	/*** START TEST ***/
 
-	Vector<U64> v0(5, 1);
+	Vector<unsigned long long> v0(5, 1);
 	v0.Push(2);
 	v0.Push(1);
 	v0.Push(2);
 	v0.Push(2);
 	v0.Push(1);
-	Vector<U64> v1;
+	Vector<unsigned long long> v1;
 
 	v0.SearchFor(Pred0, v1);
 
 	passed = v0.Size() == 10, v0.Capacity() >= v0.Size() && v1.Size() == 3 && v1.Capacity() == v0.Size() && v0.Data() && v1.Data();
 
-	for (U64 i : v1) { passed &= i == 2; }
+	for (unsigned long long i : v1) { passed &= i == 2; }
 
 	/*** END TEST ***/
 
@@ -875,13 +821,13 @@ void VectorPredicate_SearchForIndices()
 
 	/*** START TEST ***/
 
-	Vector<U64> v0(5, 1);
+	Vector<unsigned long long> v0(5, 1);
 	v0.Push(2);
 	v0.Push(1);
 	v0.Push(2);
 	v0.Push(2);
 	v0.Push(1);
-	Vector<U64> v1;
+	Vector<unsigned long long> v1;
 
 	v0.SearchForIndices(Pred0, v1);
 
@@ -899,14 +845,14 @@ void VectorPredicate_SearchCount()
 
 	/*** START TEST ***/
 
-	Vector<U64> v0(5, 1);
+	Vector<unsigned long long> v0(5, 1);
 	v0.Push(2);
 	v0.Push(1);
 	v0.Push(2);
 	v0.Push(2);
 	v0.Push(1);
 
-	U64 i = v0.SearchCount(Pred0);
+	unsigned long long i = v0.SearchCount(Pred0);
 
 	passed = v0.Size() == 10 && v0.Capacity() >= v0.Size() && v0.Data() && i == 3;
 
@@ -921,18 +867,18 @@ void VectorPredicate_RemoveAll()
 
 	/*** START TEST ***/
 
-	Vector<U64> v0(5, 1);
+	Vector<unsigned long long> v0(5, 1);
 	v0.Push(2);
 	v0.Push(1);
 	v0.Push(2);
 	v0.Push(2);
 	v0.Push(1);
 
-	U64 i = v0.RemoveAll(Pred0);
+	unsigned long long i = v0.RemoveAll(Pred0);
 
 	passed = v0.Size() == 7 && v0.Capacity() >= v0.Size() && v0.Data() && i == 3;
 
-	for (U64 i : v0) { passed &= i == 1; }
+	for (unsigned long long i : v0) { passed &= i == 1; }
 
 	/*** END TEST ***/
 
@@ -945,20 +891,20 @@ void VectorPredicate_RemoveAll_Other()
 
 	/*** START TEST ***/
 
-	Vector<U64> v0(5, 1);
+	Vector<unsigned long long> v0(5, 1);
 	v0.Push(2);
 	v0.Push(1);
 	v0.Push(2);
 	v0.Push(2);
 	v0.Push(1);
-	Vector<U64> v1;
+	Vector<unsigned long long> v1;
 
 	v0.RemoveAll(Pred0, v1);
 
 	passed = v0.Size() == 7 && v0.Capacity() >= v0.Size() && v0.Data() && v1.Size() == 3 && v1.Capacity() == 10 && v1.Data();
 
-	for (U64 i : v0) { passed &= i == 1; }
-	for (U64 i : v1) { passed &= i == 2; }
+	for (unsigned long long i : v0) { passed &= i == 1; }
+	for (unsigned long long i : v1) { passed &= i == 2; }
 
 	/*** END TEST ***/
 
@@ -971,13 +917,13 @@ void VectorReserve()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(5, 1);
+	Vector<int> v0(5, 1);
 
 	v0.Reserve(10);
 
 	passed = v0.Size() == 5 && v0.Capacity() == 10 && v0.Data();
 
-	for (I32 i = 0; i < 5; ++i) { passed &= v0[i] == 1; }
+	for (int i = 0; i < 5; ++i) { passed &= v0[i] == 1; }
 
 	/*** END TEST ***/
 
@@ -990,13 +936,13 @@ void VectorResize()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(5, 1);
+	Vector<int> v0(5, 1);
 
 	v0.Resize(10);
 
 	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data();
 
-	for (I32 i = 0; i < 5; ++i) { passed &= v0[i] == 1; }
+	for (int i = 0; i < 5; ++i) { passed &= v0[i] == 1; }
 
 	/*** END TEST ***/
 
@@ -1009,13 +955,13 @@ void VectorResize_Value()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(5, 1);
+	Vector<int> v0(5, 1);
 
 	v0.Resize(10, 2);
 
 	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data();
 
-	for (I32 i = 0; i < 10; ++i) { passed &= v0[i] == 2; }
+	for (int i = 0; i < 10; ++i) { passed &= v0[i] == 2; }
 
 	/*** END TEST ***/
 
@@ -1028,14 +974,14 @@ void VectorShrink()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(5, 1);
+	Vector<int> v0(5, 1);
 
 	v0.Push(1);
 	v0.Shrink();
 
 	passed = v0.Size() == 6 && v0.Capacity() == 6 && v0.Data();
 
-	for (I32 i = 0; i < 6; ++i) { passed &= v0[i] == 1; }
+	for (int i = 0; i < 6; ++i) { passed &= v0[i] == 1; }
 
 	/*** END TEST ***/
 
@@ -1048,7 +994,7 @@ void VectorClear()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10, 1);
+	Vector<int> v0(10, 1);
 
 	v0.Clear();
 
@@ -1065,8 +1011,8 @@ void VectorContains()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i); }
+	Vector<int> v0(10);
+	for (int i = 1; i <= 10; ++i) { v0.Push(i); }
 
 	passed = v0.Contains(5) && !v0.Contains(11);
 
@@ -1081,8 +1027,8 @@ void VectorCount()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i / 5); }
+	Vector<int> v0(10);
+	for (int i = 1; i <= 10; ++i) { v0.Push(i / 5); }
 
 	passed = v0.Count(0) == 4 && v0.Count(1) == 5 && v0.Count(2) == 1;
 
@@ -1097,10 +1043,10 @@ void VectorFind()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i); }
+	Vector<int> v0(10);
+	for (int i = 1; i <= 10; ++i) { v0.Push(i); }
 
-	passed = v0.Find(5) == 4 && v0.Find(11) == (U64)-1;
+	passed = v0.Find(5) == 4 && v0.Find(11) == (unsigned long long)-1;
 
 	/*** END TEST ***/
 
@@ -1113,7 +1059,7 @@ void VectorSize()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
+	Vector<int> v0(10);
 
 	passed = v0.Size() == 0 && v0.Capacity() == 10;
 
@@ -1128,7 +1074,7 @@ void VectorCapacity()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
+	Vector<int> v0(10);
 
 	passed = v0.Size() == 0;
 
@@ -1143,7 +1089,7 @@ void VectorData()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
+	Vector<int> v0(10);
 
 	passed = v0.Data();
 
@@ -1158,8 +1104,8 @@ void VectorSubscript()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0(10);
-	for (I32 i = 1; i <= 10; ++i) { v0.Push(i); }
+	Vector<int> v0(10);
+	for (int i = 1; i <= 10; ++i) { v0.Push(i); }
 
 	passed = v0[4] == 5;
 
@@ -1174,8 +1120,8 @@ void VectorPushSpeed()
 
 	/*** START TEST ***/
 
-	Vector<I32> v0;
-	for (I32 i = 0; i < 1000000; ++i)
+	Vector<int> v0;
+	for (int i = 0; i < 1000000; ++i)
 	{
 		v0.Push(i);
 	}
@@ -1191,8 +1137,8 @@ void STLVectorPushSpeed()
 
 	/*** START TEST ***/
 
-	std::vector<I32> v0;
-	for (I32 i = 0; i < 1000000; ++i)
+	std::vector<int> v0;
+	for (int i = 0; i < 1000000; ++i)
 	{
 		v0.push_back(i);
 	}
@@ -1247,19 +1193,19 @@ void StringInit_Array()
 {
 	CH* a0 = new CH[10];
 	a0[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a0[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a0[i] = i + 100; }
 	C8* a1 = new C8[10];
 	a1[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a1[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a1[i] = i + 100; }
 	C16* a2 = new C16[10];
 	a2[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a2[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a2[i] = i + 100; }
 	C32* a3 = new C32[10];
 	a3[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a3[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a3[i] = i + 100; }
 	CW* a4 = new CW[10];
 	a4[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a4[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a4[i] = i + 100; }
 
 	BEGIN_TEST;
 
@@ -1288,19 +1234,19 @@ void StringInit_ArrayLength()
 {
 	CH* a0 = new CH[10];
 	a0[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a0[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a0[i] = i + 100; }
 	C8* a1 = new C8[10];
 	a1[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a1[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a1[i] = i + 100; }
 	C16* a2 = new C16[10];
 	a2[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a2[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a2[i] = i + 100; }
 	C32* a3 = new C32[10];
 	a3[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a3[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a3[i] = i + 100; }
 	CW* a4 = new CW[10];
 	a4[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a4[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a4[i] = i + 100; }
 
 	BEGIN_TEST;
 
@@ -1435,19 +1381,19 @@ void StringAssign_Array()
 {
 	CH* a0 = new CH[10];
 	a0[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a0[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a0[i] = i + 100; }
 	C8* a1 = new C8[10];
 	a1[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a1[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a1[i] = i + 100; }
 	C16* a2 = new C16[10];
 	a2[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a2[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a2[i] = i + 100; }
 	C32* a3 = new C32[10];
 	a3[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a3[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a3[i] = i + 100; }
 	CW* a4 = new CW[10];
 	a4[9] = '\0';
-	for (U32 i = 0; i < 9; ++i) { a4[i] = i + 100; }
+	for (unsigned int i = 0; i < 9; ++i) { a4[i] = i + 100; }
 
 	BEGIN_TEST;
 
@@ -2083,7 +2029,6 @@ int main()
 	StringToCapital();
 #pragma endregion
 
-	return 0;
 #pragma region Vector Tests
 	printf("\nVECTOR TESTS: \n");
 	VectorInit_Blank();
@@ -2101,16 +2046,14 @@ int main()
 	VectorPush_Move();
 	VectorPop();
 	VectorPop_Copy();
-	VectorPop_Move();
 	VectorInsert_Copy();
 	VectorInsert_Move();
 	VectorInsert_CopyVector();
 	VectorInsert_MoveVector();
 	VectorRemove();
 	VectorRemove_Copy();
-	VectorRemove_Move();
 	VectorErase();
-	VectorErase_Copy();
+	VectorSteal();
 	VectorSplit();
 	VectorMerge_Copy();
 	VectorMerge_Move();
