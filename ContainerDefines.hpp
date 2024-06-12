@@ -1,8 +1,5 @@
 #pragma once
 
-#include <stdlib.h>
-#include <string.h>
-
 typedef unsigned char U8;		//Unsigned 8-bit integer
 typedef unsigned short U16;		//Unsigned 16-bit integer
 typedef unsigned int U32;		//Unsigned 32-bit integer
@@ -50,47 +47,3 @@ static inline constexpr F32 F32_MAX = 3.402823466e+38F;			//Maximum value of a 3
 static inline constexpr F32 F32_MIN = 1.175494351e-38F;			//Minimum value of a 32-bit float
 static inline constexpr F64 F64_MAX = 1.7976931348623158e+308;	//Maximum value of a 64-bit float
 static inline constexpr F64 F64_MIN = 2.2250738585072014e-308;	//Minimum value of a 64-bit float
-
-#if _MSC_VER
-#	include <intrin.h>
-#	define BreakPoint __debugbreak()
-#else
-#	define BreakPoint __builtin_trap()
-#endif
-
-#define ASSERT(expr)		\
-{							\
-	if (expr) {}			\
-	else { BreakPoint; }	\
-}
-
-#ifndef HAS_NODISCARD
-#	ifndef __has_cpp_attribute
-#		define HAS_NODISCARD 0
-#	elif __has_cpp_attribute(nodiscard) >= 201603L
-#		define HAS_NODISCARD 1
-#	else
-#		define HAS_NODISCARD 0
-#	endif
-#endif
-
-#if HAS_NODISCARD
-#	define NH_NODISCARD [[nodiscard]]
-#else
-#	define NH_NODISCARD
-#endif
-
-enum ISAAvailability
-{
-	ISA_AVAILABLE_X86 = 0,
-	ISA_AVAILABLE_SSE2 = 1,
-	ISA_AVAILABLE_SSE42 = 2,
-	ISA_AVAILABLE_AVX = 3,
-	ISA_AVAILABLE_ENFSTRG = 4,
-	ISA_AVAILABLE_AVX2 = 5,
-	ISA_AVAILABLE_AVX512 = 6,
-
-	ISA_AVAILABLE_ARMNT = 0,
-	ISA_AVAILABLE_NEON = 1,
-	ISA_AVAILABLE_NEON_ARM64 = 2,
-};

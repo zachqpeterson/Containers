@@ -12,6 +12,6 @@ public:
 class DefaultAllocator : Allocator
 {
 public:
-	inline void* Allocate(U64 size) final { return malloc(size); }
-	inline void Free(void* ptr) final { return free(ptr); }
+	inline virtual void* Allocate(U64 size) final { return malloc(size); }
+	inline virtual void Free(void* ptr) final { return free(ptr); }
 };

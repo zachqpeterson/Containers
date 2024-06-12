@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Defines.hpp"
-#include "Initiazer.h"
+#include "ContainerDefines.hpp"
 
 template<typename T>
 struct List
@@ -86,8 +85,6 @@ public:
 	List(List&& other);
 	List& operator=(const List& other);
 	List& operator=(List&& other);
-	template<T... Args> constexpr List(const Initializer<T, Args...>& init);
-	template<T... Args> constexpr List& operator=(const Initializer<T, Args...>& init);
 
 	~List();
 	void Destroy();
@@ -187,16 +184,6 @@ template<typename T> inline List<T>& List<T>::operator=(List<T>&& other)
 	other.head = nullptr;
 	other.tail = nullptr;
 	other.size = 0;
-}
-
-template<typename T> template<T... Args> inline constexpr List<T>::List(const Initializer<T, Args...>& init)
-{
-
-}
-
-template<typename T> template<T... Args> inline constexpr List<T>& List<T>::operator=(const Initializer<T, Args...>& init)
-{
-
 }
 
 template<typename T> inline List<T>::~List()

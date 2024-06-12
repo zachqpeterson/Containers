@@ -1,5 +1,20 @@
 #pragma once
 
+enum ISAAvailability
+{
+	ISA_AVAILABLE_X86 = 0,
+	ISA_AVAILABLE_SSE2 = 1,
+	ISA_AVAILABLE_SSE42 = 2,
+	ISA_AVAILABLE_AVX = 3,
+	ISA_AVAILABLE_ENFSTRG = 4,
+	ISA_AVAILABLE_AVX2 = 5,
+	ISA_AVAILABLE_AVX512 = 6,
+
+	ISA_AVAILABLE_ARMNT = 0,
+	ISA_AVAILABLE_NEON = 1,
+	ISA_AVAILABLE_NEON_ARM64 = 2,
+};
+
 template <class Derived, class Base> inline constexpr bool InheritsFrom = __is_base_of(Base, Derived) && __is_convertible_to(const volatile Derived*, const volatile Base*);
 
 template <class From, class To> inline constexpr bool ConvertibleTo = __is_convertible_to(From, To);
@@ -15,7 +30,7 @@ template <class Type> concept NothrowMoveConstructible = IsNothrowMoveConstructi
 
 template <class Type> inline constexpr unsigned long long Alignment = alignof(Type);
 
-NH_NODISCARD constexpr bool ConstantEvaluation() noexcept
+constexpr bool ConstantEvaluation() noexcept
 {
 	return __builtin_is_constant_evaluated();
 }
@@ -561,7 +576,7 @@ constexpr U64 LeftZeroBits(const T val) noexcept
 }
 
 template<Unsigned T>
-NH_NODISCARD constexpr T BitCeiling(const T val) noexcept
+constexpr T BitCeiling(const T val) noexcept
 {
 	if (val <= 1u) { return T{ 1 }; }
 
