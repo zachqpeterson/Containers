@@ -3,7 +3,7 @@
 #include "Defines.hpp"
 #include "TypeTraits.hpp"
 #include "Allocator.h"
-#include "Initiazer.h"
+#include "Initializer.h"
 
 //TODO: temp
 #include <windows.h>
@@ -39,6 +39,8 @@
 template<typename T>
 struct Vector
 {
+	using Predicate = bool(const T&);
+
 public:
 	/// <summary>
 	/// Creates a new Vector instance, size and capacity will be zero, array will be nullptr
@@ -75,7 +77,7 @@ public:
 	/// Creates a new Vector instance, capacity and size will be init's size, creates an array of the same size and copies other's data into it
 	/// </summary>
 	/// <param name="init:">Initializer to copy data from</param>
-	template<T... Args> constexpr Vector(const Initializer<T, Args...>& init);
+	constexpr Vector(const Initializer<T>& init);
 
 	/// <summary>
 	/// Copies other's data into this, capacity and size will be other's, creates an array of the same size and copies other's data into it
@@ -99,7 +101,7 @@ public:
 	/// </summary>
 	/// <param name="init:">Initializer to copy data from</param>
 	/// <returns>Reference to this</returns>
-	template<T... Args> constexpr Vector& operator=(const Initializer<T, Args...>& init);
+	constexpr Vector& operator=(const Initializer<T>& init);
 
 
 
@@ -129,13 +131,13 @@ public:
 	/// Increases size by one and puts value onto the back of array, reallocates array if it's too small
 	/// </summary>
 	/// <param name="value:">The value to put into array</param>
-	void Push(const T& value);
+	T& Push(const T& value);
 
 	/// <summary>
 	/// Increases size by one and moves value onto the back of array, reallocates array if it's too small
 	/// </summary>
 	/// <param name="value:">The value to move into array</param>
-	void Push(T&& value) noexcept;
+	T& Push(T&& value) noexcept;
 
 	/// <summary>
 	/// Decreases the size by one
@@ -159,14 +161,14 @@ public:
 	/// </summary>
 	/// <param name="index:">The index to put value</param>
 	/// <param name="value:">The value to copy</param>
-	void Insert(U64 index, const T& value);
+	T& Insert(U64 index, const T& value);
 
 	/// <summary>
 	/// Inserts value into index, moves values at and past index over, reallocates array if it's too small
 	/// </summary>
 	/// <param name="index:">The index to put value</param>
 	/// <param name="value:">The value to move</param>
-	void Insert(U64 index, T&& value) noexcept;
+	T& Insert(U64 index, T&& value) noexcept;
 
 	/// <summary>
 	/// Copies other and inserts it into index, moves values at and past index over, reallocates array if it's too small
@@ -184,20 +186,20 @@ public:
 	void Insert(U64 index, Vector&& other) noexcept;
 
 	/// <summary>
-	/// Moves values past index to index
+	/// Swaps last element into index, decrements size a.k.a. swap and pop
 	/// </summary>
 	/// <param name="index:">The index to remove</param>
 	void Remove(U64 index);
 
 	/// <summary>
-	/// Copies value at index into value, moves values past index to index
+	/// Copies value at index into value, Swaps last element into index, decrements size a.k.a. swap and pop
 	/// </summary>
 	/// <param name="index:">The index to remove</param>
 	/// <param name="value:">The value to copy to</param>
 	void Remove(U64 index, T& value);
 
 	/// <summary>
-	/// Moves value at index into value, moves values past index to index
+	/// Moves value at index into value, Swaps last element into index, decrements size a.k.a. swap and pop
 	/// </summary>
 	/// <param name="index:">The index to remove</param>
 	/// <param name="value:">The value to move to</param>
@@ -211,13 +213,13 @@ public:
 	void Erase(U64 index0, U64 index1);
 
 	/// <summary>
-	/// Copies values to be erased into other, moves values at and past index1 to index0
+	/// Copies values to be stolen into other, moves values at and past index1 to index0
 	/// WARNING: any previous data in other will be lost
 	/// </summary>
-	/// <param name="index0:">The beginning of the erasure, inclusive</param>
-	/// <param name="index1:">The end of the erasure, exclusive</param>
+	/// <param name="index0:">The beginning of the steal, inclusive</param>
+	/// <param name="index1:">The end of the steal, exclusive</param>
 	/// <param name="other:">The Vector to copy to</param>
-	void Erase(U64 index0, U64 index1, Vector& other);
+	void Steal(U64 index0, U64 index1, Vector& other);
 
 
 
@@ -265,7 +267,7 @@ public:
 	/// </summary>
 	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
 	/// <param name="other:">A Vector to fill with values</param>
-	template<typename Predicate> void SearchFor(Predicate predicate, Vector& other);
+	void SearchFor(Predicate predicate, Vector& other);
 
 	/// <summary>
 	/// Searches array, finds indices of all values that satisfy predicate, fill other with those indices
@@ -273,21 +275,21 @@ public:
 	/// </summary>
 	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
 	/// <param name="other:">A Vector to fill with indices</param>
-	template<typename Predicate> void SearchForIndices(Predicate predicate, Vector<U64>& other);
+	void SearchForIndices(Predicate predicate, Vector<U64>& other);
 
 	/// <summary>
 	/// Searches array, finds all values that satisfy predicate
 	/// </summary>
 	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
 	/// <returns>The count of values that satisfy predicate</returns>
-	template<typename Predicate> U64 SearchCount(Predicate predicate);
+	U64 SearchCount(Predicate predicate);
 
 	/// <summary>
 	/// Searches array, finds all values that satisfy predicate, removes them from array
 	/// </summary>
 	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
 	/// <returns>The count of values that satisfy predicate</returns>
-	template<typename Predicate> U64 RemoveAll(Predicate predicate);
+	U64 RemoveAll(Predicate predicate);
 
 	/// <summary>
 	/// Searches array, finds all values that satisfy predicate, removes them from array and puts them into other
@@ -295,7 +297,7 @@ public:
 	/// </summary>
 	/// <param name="predicate:">A function to evaluate values: bool pred(const T& value)</param>
 	/// <param name="other:">A Vector to fill with values</param>
-	template<typename Predicate> void RemoveAll(Predicate predicate, Vector& other);
+	void RemoveAll(Predicate predicate, Vector& other);
 	
 
 
@@ -317,11 +319,6 @@ public:
 	/// <param name="size:">The size to set to</param>
 	/// <param name="value:">The value to fill the array with</param>
 	void Resize(U64 size, const T& value);
-
-	/// <summary>
-	/// Reallocates the array to match size
-	/// </summary>
-	void Shrink();
 
 	/// <summary>
 	/// Sets size to zero
@@ -444,7 +441,7 @@ template<typename T> inline Vector<T>::Vector(U64 capacity) : size{ 0 }, capacit
 
 template<typename T> inline Vector<T>::Vector(U64 size, const T& value) : size{ size }, capacity{ size }, array{ (T*)malloc(sizeof(T) * capacity) }
 {
-	for (T* t = array, *end = array + size; t != end; ++t) { *t = value; }
+	for (T* t = array, *end = array + size; t != end; ++t) { new (t) T(value); }
 }
 
 template<typename T> inline Vector<T>::Vector(const Vector<T>& other) : size{ other.size }, capacity{ other.capacity }, array{ (T*)malloc(sizeof(T) * capacity) }
@@ -459,10 +456,9 @@ template<typename T> inline Vector<T>::Vector(Vector<T>&& other) noexcept : size
 	other.capacity = 0;
 }
 
-template<typename T> template<T... Args> inline constexpr Vector<T>::Vector(const Initializer<T, Args...>& init) :
-	size{ init.size }, capacity{ size }, array{ (T*)malloc(sizeof(T) * capacity) }
+template<typename T> inline constexpr Vector<T>::Vector(const Initializer<T>& init) : size{ init.Size }, capacity{ size }, array{ (T*)malloc(sizeof(T) * capacity) }
 {
-	memcpy(array, init.list, sizeof(T)* size);
+	memcpy(array, init.List, sizeof(T) * size);
 }
 
 template<typename T> inline Vector<T>& Vector<T>::operator=(const Vector<T>& other)
@@ -491,13 +487,15 @@ template<typename T> inline Vector<T>& Vector<T>::operator=(Vector<T>&& other) n
 	return *this;
 }
 
-template<typename T> template<T... Args> inline constexpr Vector<T>& Vector<T>::operator=(const Initializer<T, Args...>& init)
+template<typename T> inline constexpr Vector<T>& Vector<T>::operator=(const Initializer<T>& init)
 {
 	free(array);
-	size = init.size;
+	size = init.Size;
 	capacity = size;
 	array = (T*)malloc(sizeof(T) * capacity);
-	memcpy(array, init.list, sizeof(T) * size);
+	memcpy(array, init.List, sizeof(T) * size);
+
+	return *this;
 }
 
 template<typename T> inline Vector<T>::~Vector() { Destroy(); }
@@ -508,20 +506,18 @@ template<typename T> inline void* Vector<T>::operator new(U64 size) { return mal
 
 template<typename T> inline void Vector<T>::operator delete(void* ptr) { free(ptr); }
 
-template<typename T> inline void Vector<T>::Push(const T& value)
+template<typename T> inline T& Vector<T>::Push(const T& value)
 {
 	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
-	array[size] = value;
-	++size;
+	return *(new (array + size++) T(value));
 }
 
-template<typename T> inline void Vector<T>::Push(T&& value) noexcept
+template<typename T> inline T& Vector<T>::Push(T&& value) noexcept
 {
 	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
-	array[size] = Move(value);
-	++size;
+	return *(new (array + size++) T(Move(value)));
 }
 
 template<typename T> inline void Vector<T>::Pop()
@@ -539,22 +535,22 @@ template<typename T> inline void Vector<T>::Pop(T&& value) noexcept
 	if (size) { value = Move(array[--size]); }
 }
 
-template<typename T> inline void Vector<T>::Insert(U64 index, const T& value)
+template<typename T> inline T& Vector<T>::Insert(U64 index, const T& value)
 {
 	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
 	memcpy(array + index + 1, array + index, sizeof(T) * (size - index));
-	array[index] = value;
 	++size;
+	return *(new (array + index) T(value));
 }
 
-template<typename T> inline void Vector<T>::Insert(U64 index, T&& value) noexcept
+template<typename T> inline T& Vector<T>::Insert(U64 index, T&& value) noexcept
 {
 	if (size == capacity) { Reserve((capacity + 1) * 2); }
 
 	memcpy(array + index + 1, array + index, sizeof(T) * (size - index));
-	array[index] = Move(value);
 	++size;
+	return *(new (array + index) T(Move(value)));
 }
 
 template<typename T> inline void Vector<T>::Insert(U64 index, const Vector<T>& other)
@@ -582,9 +578,7 @@ template<typename T> inline void Vector<T>::Insert(U64 index, Vector<T>&& other)
 
 template<typename T> inline void Vector<T>::Remove(U64 index)
 {
-	memcpy(array + index, array + index + 1, sizeof(T) * (size - index));
-
-	--size;
+	new (array + index) T(Move(array[--size]));
 }
 
 template<typename T> inline void Vector<T>::Remove(U64 index, T& value)
@@ -610,7 +604,7 @@ template<typename T> inline void Vector<T>::Erase(U64 index0, U64 index1)
 	size -= index1 - index0;
 }
 
-template<typename T> inline void Vector<T>::Erase(U64 index0, U64 index1, Vector<T>& other)
+template<typename T> inline void Vector<T>::Steal(U64 index0, U64 index1, Vector<T>& other)
 {
 	other.Reserve(index1 - index0);
 	other.size = other.capacity;
@@ -671,7 +665,7 @@ template<typename T> inline Vector<T>& Vector<T>::operator+=(Vector<T>&& other) 
 	return *this;
 }
 
-template<typename T> template<typename Predicate> inline void Vector<T>::SearchFor(Predicate predicate, Vector<T>& other)
+template<typename T> inline void Vector<T>::SearchFor(Predicate predicate, Vector<T>& other)
 {
 	other.Reserve(size);
 	other.size = 0;
@@ -682,7 +676,7 @@ template<typename T> template<typename Predicate> inline void Vector<T>::SearchF
 	}
 }
 
-template<typename T> template<typename Predicate> inline void Vector<T>::SearchForIndices(Predicate predicate, Vector<U64>& other)
+template<typename T> inline void Vector<T>::SearchForIndices(Predicate predicate, Vector<U64>& other)
 {
 	other.Reserve(size);
 	other.size = 0;
@@ -694,7 +688,7 @@ template<typename T> template<typename Predicate> inline void Vector<T>::SearchF
 	}
 }
 
-template<typename T> template<typename Predicate> inline U64 Vector<T>::SearchCount(Predicate predicate)
+template<typename T> inline U64 Vector<T>::SearchCount(Predicate predicate)
 {
 	U64 i = 0;
 	for (T* t = array, *end = array + size; t != end; ++t)
@@ -705,7 +699,7 @@ template<typename T> template<typename Predicate> inline U64 Vector<T>::SearchCo
 	return i;
 }
 
-template<typename T> template<typename Predicate> inline U64 Vector<T>::RemoveAll(Predicate predicate)
+template<typename T> inline U64 Vector<T>::RemoveAll(Predicate predicate)
 {
 	T* last = array + size;
 
@@ -724,7 +718,7 @@ template<typename T> template<typename Predicate> inline U64 Vector<T>::RemoveAl
 	return i;
 }
 
-template<typename T> template<typename Predicate> inline void Vector<T>::RemoveAll(Predicate predicate, Vector<T>& other)
+template<typename T> inline void Vector<T>::RemoveAll(Predicate predicate, Vector<T>& other)
 {
 	T* last = array + size;
 
@@ -762,12 +756,6 @@ template<typename T> inline void Vector<T>::Resize(U64 size, const T& value)
 	this->size = size;
 
 	for (U64 i = 0; i < size; ++i) { array[i] = value; }
-}
-
-template<typename T> inline void Vector<T>::Shrink()
-{
-	capacity = size;
-	array = (T*)realloc(array, sizeof(T*) * capacity);
 }
 
 template<typename T> inline bool Vector<T>::Contains(const T& value) const
