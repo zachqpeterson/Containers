@@ -1,9 +1,18 @@
 #pragma once
 
 #include "ContainerDefines.hpp"
-#include "TypeTraits.hpp"
 
+#include <type_traits>
 #include <string>
+#include <bit>
+
+template <class Type, U64 Count> struct GetPointerCount { static constexpr U64 count = Count; };
+template <class Type, U64 Count> struct GetPointerCount<Type*, Count> : public GetPointerCount<Type, Count + 1> { };
+
+template <class Type> constexpr const U64 PointerCount = GetPointerCount<Type, 0>::count;
+
+template <class Type> inline constexpr bool IsCharacter = std::_Is_any_of_v<std::remove_cvref_t<Type>, char, char8_t, char16_t, char32_t, wchar_t>;
+template <class Type> concept Character = IsCharacter<Type>;
 
 template<Character C> struct StringBase;
 
@@ -13,11 +22,13 @@ using String16 = StringBase<char16_t>;
 using String32 = StringBase<char32_t>;
 using StringW = StringBase<wchar_t>;
 
-template <class Type> inline constexpr bool IsStringType = AnyOf<RemovedQuals<Type>, String, String8, String16, String32, StringW>;
+template <class Type> constexpr const bool IsStringLiteral = IsCharacter<std::remove_extent_t<std::remove_pointer_t<Type>>> && (PointerCount<Type> == 1 || std::rank_v<Type> == 1);
+template <class Type> concept StringLiteral = IsStringLiteral<Type>;
+template <class Type> inline constexpr bool IsStringType = std::_Is_any_of_v<std::remove_cvref_t<Type>, String, String8, String16, String32, StringW>;
 template <class Type> concept StringType = IsStringType<Type>;
-template <class Type> inline constexpr bool IsNonStringPointer = IsPointer<Type> && !IsStringLiteral<Type>;
+template <class Type> inline constexpr bool IsNonStringPointer = std::is_pointer_v<Type> && !IsStringLiteral<Type>;
 template <class Type> concept NonStringPointer = IsNonStringPointer<Type>;
-template <class Type> inline constexpr bool IsNonStringClass = IsClass<Type> && !IsStringType<Type>;
+template <class Type> inline constexpr bool IsNonStringClass = std::is_class_v<Type> && !IsStringType<Type>;
 template <class Type> concept NonStringClass = IsNonStringClass<Type>;
 
 template<Character C>
@@ -239,12 +250,12 @@ inline StringBase<C> StringBase<C>::SubString(U64 start, U64 length) const
 	{
 		StringBase<C> str(string + start, length);
 		str.string[length] = '\0';
-		return Move(str);
+		return std::move(str);
 	}
 	else
 	{
 		StringBase<C> str(string + start, size - start);
-		return Move(str);
+		return std::move(str);
 	}
 }
 
@@ -256,7 +267,7 @@ inline StringBase<C> StringBase<C>::Appended(const StringBase<C>& append) const
 	Copy(str.Data() + size, append.Data(), append.Size());
 	str.Data()[str.Size()] = '\0';
 
-	return Move(str);
+	return std::move(str);
 }
 
 template<Character C>
@@ -267,7 +278,7 @@ inline StringBase<C> StringBase<C>::Prepended(const StringBase<C>& prepend) cons
 	Copy(str.Data() + prepend.Size(), string, size);
 	str.Data()[str.Size()] = '\0';
 
-	return Move(str);
+	return std::move(str);
 }
 
 template<Character C>
@@ -279,7 +290,7 @@ inline StringBase<C> StringBase<C>::Surrounded(const StringBase<C>& prepend, con
 	Copy(str.Data() + prepend.Size() + size, append.Data(), append.Size());
 	str.Data()[str.Size()] = '\0';
 
-	return Move(str);
+	return std::move(str);
 }
 
 template<Character C>
@@ -475,7 +486,7 @@ inline void StringBase<C>::Allocate(U64 length)
 {
 	constexpr U64 size = sizeof(C);
 
-	capacity = length < 1024 ? 1024 : BitCeiling(length);
+	capacity = length < 1024 ? 1024 : std::bit_ceil(length);
 
 	string = (C*)malloc(capacity * size);
 }
@@ -487,7 +498,7 @@ inline void StringBase<C>::Reallocate(U64 length)
 
 	if (length <= capacity) { return; }
 
-	capacity = length < 1024 ? 1024 : BitCeiling(length);
+	capacity = length < 1024 ? 1024 : std::bit_ceil(length);
 
 	if (string) { string = (C*)realloc(string, capacity * size); }
 	else { string = (C*)malloc(capacity * size); }
@@ -505,23 +516,23 @@ constexpr inline U64 StringBase<C>::Length(const C* str) const
 template<Character C>
 inline bool StringBase<C>::Blank(C c) const
 {
-	if constexpr (IsSame<C, char>)
+	if constexpr (std::is_same_v<C, char>)
 	{
 		return c == '\n' || c == '\r' || c == '\t' || c == '\v' || c == '\f' || c == ' ';
 	}
-	else if constexpr (IsSame<C, char8_t>)
+	else if constexpr (std::is_same_v<C, char8_t>)
 	{
 		return c == u8'\n' || c == u8'\r' || c == u8'\t' || c == u8'\v' || c == u8'\f' || c == u8' ';
 	}
-	else if constexpr (IsSame<C, char16_t>)
+	else if constexpr (std::is_same_v<C, char16_t>)
 	{
 		return c == u'\n' || c == u'\r' || c == u'\t' || c == u'\v' || c == u'\f' || c == u' ';
 	}
-	else if constexpr (IsSame<C, char32_t>)
+	else if constexpr (std::is_same_v<C, char32_t>)
 	{
 		return c == U'\n' || c == U'\r' || c == U'\t' || c == U'\v' || c == U'\f' || c == U' ';
 	}
-	else if constexpr (IsSame<C, wchar_t>)
+	else if constexpr (std::is_same_v<C, wchar_t>)
 	{
 		return c == L'\n' || c == L'\r' || c == L'\t' || c == L'\v' || c == L'\f' || c == L' ';
 	}
@@ -530,23 +541,23 @@ inline bool StringBase<C>::Blank(C c) const
 template<Character C>
 inline bool StringBase<C>::NotBlank(C c) const
 {
-	if constexpr (IsSame<C, char>)
+	if constexpr (std::is_same_v<C, char>)
 	{
 		return c != '\n' && c != '\r' && c != '\t' && c != '\v' && c != '\f' && c != ' ';
 	}
-	else if constexpr (IsSame<C, char8_t>)
+	else if constexpr (std::is_same_v<C, char8_t>)
 	{
 		return c != u8'\n' && c != u8'\r' && c != u8'\t' && c != u8'\v' && c != u8'\f' && c != u8' ';
 	}
-	else if constexpr (IsSame<C, char16_t>)
+	else if constexpr (std::is_same_v<C, char16_t>)
 	{
 		return c != u'\n' && c != u'\r' && c != u'\t' && c != u'\v' && c != u'\f' && c != u' ';
 	}
-	else if constexpr (IsSame<C, char32_t>)
+	else if constexpr (std::is_same_v<C, char32_t>)
 	{
 		return c != U'\n' && c != U'\r' && c != U'\t' && c != U'\v' && c != U'\f' && c != U' ';
 	}
-	else if constexpr (IsSame<C, wchar_t>)
+	else if constexpr (std::is_same_v<C, wchar_t>)
 	{
 		return c != L'\n' && c != L'\r' && c != L'\t' && c != L'\v' && c != L'\f' && c != L' ';
 	}

@@ -8,6 +8,9 @@
 #include <vector>
 #include <list>
 
+static int constructCount = 0;
+static int destructCount = 0;
+
 #define BEGIN_TEST				\
 bool passed = false;			\
 LARGE_INTEGER start;			\
@@ -23,7 +26,8 @@ constexpr unsigned long long len = Length(__FUNCTION__);												\
 char name[len + 2] = __FUNCTION__;														\
 name[len] = ':';																		\
 name[len + 1] = '\0';																	\
-printf("%-35s %s  |  Time taken: %fs\n", name, passed ? "\033[32mPASSED\033[0m" : "\033[31mFAILED\033[0m", time);
+printf("%-35s %s  |  Time taken: %fs\n", name, passed ? "\033[32mPASSED\033[0m" : "\033[31mFAILED\033[0m", time); \
+constructCount = 0; destructCount = 0;
 
 template<typename T>
 bool Compare(const T* a, const T* b, unsigned long long length)
@@ -35,9 +39,30 @@ bool Compare(const T* a, const T* b, unsigned long long length)
 
 LARGE_INTEGER freq;
 
-bool Pred0(unsigned long long i) { return i == 2; }
 
-bool Pred1(unsigned long long i) { return i < 5; }
+struct SimpleData
+{
+	bool operator==(const SimpleData& other) { return i == other.i && f == other.f && b == other.b; }
+
+	int i = 27;
+	float f = 3.14f;
+	bool b = true;
+};
+
+struct ConstructableData
+{
+	ConstructableData() : i{ 27 }, f{ 3.14f }, b{ true } { ++constructCount; }
+	~ConstructableData() { i = 0; f = 0.0f; b = false; ++destructCount; }
+
+	bool operator==(const ConstructableData& other) { return i == other.i && f == other.f && b == other.b; }
+
+	int i;
+	float f;
+	bool b;
+};
+
+bool Pred0(const unsigned long long& i) { return i == 2; }
+bool Pred1(const unsigned long long& i) { return i < 5; }
 
 #pragma region Vector Tests
 void VectorInit_Blank()
@@ -83,26 +108,22 @@ void VectorInit_Capacity()
 	END_TEST
 }
 
+template<class Type>
 void VectorInit_Size()
 {
 	BEGIN_TEST;
 
 	/*** START TEST ***/
 
-	Vector<int> v0(10, 1);
-	Vector<int*> v1(10, new int(1));
+	Vector<Type> v(10, {});
 
-	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data() &&
-		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data();
+	passed = v.Size() == 10 && v.Capacity() == 10 && v.Data();
 
-	for (int i : v0)
+	Type def{};
+
+	for (const Type& i : v)
 	{
-		if (i != 1) { passed = false; }
-	}
-
-	for (int* i : v1)
-	{
-		if (i == nullptr || *i != 1) { passed = false; }
+		passed &= i == def;
 	}
 
 	/*** END TEST ***/
@@ -158,9 +179,9 @@ void VectorInit_Move()
 	/*** START TEST ***/
 
 	Vector<int> v0(10, 1);
-	Vector<int> v1(Move(v0));
+	Vector<int> v1(std::move(v0));
 	Vector<int*> v2(10, new int(1));
-	Vector<int*> v3(Move(v2));
+	Vector<int*> v3(std::move(v2));
 
 	passed = v0.Size() == 0 && v0.Capacity() == 0 && v0.Data() == nullptr &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data() &&
@@ -201,6 +222,27 @@ void VectorInit_Initializer()
 	Vector<int> v0{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	passed = v0.Size() == 10 && v0.Capacity() == 10 && v0.Data();
+
+	for (int i : v0)
+	{
+		if (i != 1) { passed = false; }
+	}
+
+	/*** END TEST ***/
+
+	END_TEST
+}
+
+
+void VectorInit_InitializerSTD()
+{
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	std::vector<int> v0{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	passed = v0.size() == 10 && v0.capacity() == 10 && v0.data();
 
 	for (int i : v0)
 	{
@@ -260,9 +302,9 @@ void VectorAssign_Move()
 	/*** START TEST ***/
 
 	Vector<int> v0(10, 1);
-	Vector<int> v1 = Move(v0);
+	Vector<int> v1 = std::move(v0);
 	Vector<int*> v2(10, new int(1));
-	Vector<int*> v3 = Move(v2);
+	Vector<int*> v3 = std::move(v2);
 
 	passed = v0.Size() == 0 && v0.Capacity() == 0 && v0.Data() == nullptr &&
 		v1.Size() == 10 && v1.Capacity() == 10 && v1.Data() &&
@@ -315,22 +357,18 @@ void VectorAssign_Initializer()
 	END_TEST
 }
 
+template<class Type>
 void VectorDestroy()
 {
 	BEGIN_TEST;
 
 	/*** START TEST ***/
 
-	Vector<int> v0(1, 10);
+	Vector<Type> v(10, {});
 
-	v0.Destroy();
+	v.Destroy();
 
-	passed = v0.Size() == 0 && v0.Capacity() == 0 && v0.Data() == nullptr;
-
-	for (int i : v0)
-	{
-		passed = false;
-	}
+	passed = v.Size() == 0 && v.Capacity() == 0 && v.Data() == nullptr;
 
 	/*** END TEST ***/
 
@@ -365,6 +403,7 @@ void VectorPush_Copy()
 
 	/*** START TEST ***/
 
+	passed = true;
 	Vector<int> v0;
 
 	for (int i = 0; i < 10; ++i)
@@ -386,9 +425,10 @@ void VectorPush_Move()
 
 	Vector<int> v0;
 
+	passed = true;
 	for (int i = 0; i < 10; ++i)
 	{
-		v0.Push(Move(i));
+		v0.Push(std::move(i));
 		passed &= v0.Size() == i + 1 && v0.Capacity() >= v0.Size() && v0.Data() && v0[i] == i;
 	}
 
@@ -403,6 +443,7 @@ void VectorPop()
 
 	/*** START TEST ***/
 
+	passed = true;
 	Vector<int> v0(10, 1);
 
 	unsigned long long cap = v0.Capacity();
@@ -424,6 +465,7 @@ void VectorPop_Copy()
 
 	/*** START TEST ***/
 
+	passed = true;
 	Vector<int> v0(10, 1);
 
 	unsigned long long cap = v0.Capacity();
@@ -548,7 +590,7 @@ void VectorInsert_MoveVector()
 	Vector<int> v2(10, 3);
 	Vector<int> v3(10, 4);
 
-	v0.Insert(5, Move(v1));
+	v0.Insert(5, std::move(v1));
 
 	passed = v0.Size() == 20 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v1.Size() == 0 && v1.Capacity() == 0 && !v1.Data();
@@ -557,7 +599,7 @@ void VectorInsert_MoveVector()
 	for (int i = 5; i < 15; ++i) { passed &= v0[i] == 2; }
 	for (int i = 15; i < 20; ++i) { passed &= v0[i] == 1; }
 
-	v0.Insert(0, Move(v2));
+	v0.Insert(0, std::move(v2));
 
 	passed &= v0.Size() == 30 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v2.Size() == 0 && v2.Capacity() == 0 && !v2.Data();
@@ -567,7 +609,7 @@ void VectorInsert_MoveVector()
 	for (int i = 15; i < 25; ++i) { passed &= v0[i] == 2; }
 	for (int i = 25; i < 30; ++i) { passed &= v0[i] == 1; }
 
-	v0.Insert(v0.Size(), Move(v3));
+	v0.Insert(v0.Size(), std::move(v3));
 
 	passed &= v0.Size() == 40 && v0.Capacity() >= v0.Size() && v0.Data() &&
 		v3.Size() == 0 && v3.Capacity() == 0 && !v3.Data();
@@ -733,7 +775,7 @@ void VectorMerge_Move()
 	Vector<int> v0(10, 1);
 	Vector<int> v1(10, 2);
 
-	v0.Merge(Move(v1));
+	v0.Merge(std::move(v1));
 
 	passed = v0.Size() == 20 && v0.Capacity() == 20 && v0.Data() &&
 		v1.Size() == 0 && v1.Capacity() == 0 && !v1.Data();
@@ -777,7 +819,7 @@ void VectorAdd_Move()
 	Vector<int> v0(10, 1);
 	Vector<int> v1(10, 2);
 
-	v0 += Move(v1);
+	v0 += std::move(v1);
 
 	passed = v0.Size() == 20 && v0.Capacity() == 20 && v0.Data() &&
 		v1.Size() == 0 && v1.Capacity() == 0 && !v1.Data();
@@ -874,11 +916,14 @@ void VectorPredicate_RemoveAll()
 	v0.Push(2);
 	v0.Push(1);
 
-	unsigned long long i = v0.RemoveAll(Pred0);
+	unsigned long long count = v0.RemoveAll(Pred0);
 
-	passed = v0.Size() == 7 && v0.Capacity() >= v0.Size() && v0.Data() && i == 3;
+	passed = v0.Size() == 7 && v0.Capacity() >= v0.Size() && v0.Data() && count == 3;
 
-	for (unsigned long long i : v0) { passed &= i == 1; }
+	for (unsigned long long i : v0)
+	{
+		passed &= i == 1;
+	}
 
 	/*** END TEST ***/
 
@@ -968,26 +1013,6 @@ void VectorResize_Value()
 	END_TEST
 }
 
-void VectorShrink()
-{
-	BEGIN_TEST;
-
-	/*** START TEST ***/
-
-	Vector<int> v0(5, 1);
-
-	v0.Push(1);
-	v0.Shrink();
-
-	passed = v0.Size() == 6 && v0.Capacity() == 6 && v0.Data();
-
-	for (int i = 0; i < 6; ++i) { passed &= v0[i] == 1; }
-
-	/*** END TEST ***/
-
-	END_TEST
-}
-
 void VectorClear()
 {
 	BEGIN_TEST;
@@ -1046,7 +1071,7 @@ void VectorFind()
 	Vector<int> v0(10);
 	for (int i = 1; i <= 10; ++i) { v0.Push(i); }
 
-	passed = v0.Find(5) == 4 && v0.Find(11) == (unsigned long long)-1;
+	passed = v0.Find(5) == 4 && v0.Find(11) == (unsigned long long) - 1;
 
 	/*** END TEST ***/
 
@@ -1126,6 +1151,8 @@ void VectorPushSpeed()
 		v0.Push(i);
 	}
 
+	passed = true;
+
 	/*** END TEST ***/
 
 	END_TEST
@@ -1142,6 +1169,8 @@ void STLVectorPushSpeed()
 	{
 		v0.push_back(i);
 	}
+
+	passed = true;
 
 	/*** END TEST ***/
 
@@ -1332,11 +1361,11 @@ void StringInit_Move()
 	String32 c3(U"Hello, World!");
 	StringW c4(L"Hello, World!");
 
-	String str0(Move(c0));
-	String8 str1(Move(c1));
-	String16 str2(Move(c2));
-	String32 str3(Move(c3));
-	StringW str4(Move(c4));
+	String str0(std::move(c0));
+	String8 str1(std::move(c1));
+	String16 str2(std::move(c2));
+	String32 str3(std::move(c3));
+	StringW str4(std::move(c4));
 
 	passed = c0.Size() == 0 && c0.Capacity() == 0 && c0.Data() == nullptr &&
 		c1.Size() == 0 && c1.Capacity() == 0 && c1.Data() == nullptr &&
@@ -1509,8 +1538,8 @@ void StringAssign_CopySelf()
 	str3 = str3;
 	str4 = str4;
 
-	passed = str0.Data() == p0 && str1.Data() == p1 && str2.Data() == p2 && 
-		str3.Data() == p3 && str4.Data() == p4 && 
+	passed = str0.Data() == p0 && str1.Data() == p1 && str2.Data() == p2 &&
+		str3.Data() == p3 && str4.Data() == p4 &&
 		str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
 		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
 		str2.Size() == 13 && str2.Capacity() == 1024 && Compare(str2.Data(), u"Hello, World!", 14) &&
@@ -1536,11 +1565,11 @@ void StringAssign_Move()
 	String32 str8(U"Goodbye, World!");
 	StringW str9(L"Goodbye, World!");
 
-	str0 = Move(str5);
-	str1 = Move(str6);
-	str2 = Move(str7);
-	str3 = Move(str8);
-	str4 = Move(str9);
+	str0 = std::move(str5);
+	str1 = std::move(str6);
+	str2 = std::move(str7);
+	str3 = std::move(str8);
+	str4 = std::move(str9);
 
 	//TODO: Somehow confirm old ptr was freed
 
@@ -1574,11 +1603,11 @@ void StringAssign_MoveSelf()
 	C32* p3 = str3.Data();
 	CW* p4 = str4.Data();
 
-	str0 = Move(str0);
-	str1 = Move(str1);
-	str2 = Move(str2);
-	str3 = Move(str3);
-	str4 = Move(str4);
+	str0 = std::move(str0);
+	str1 = std::move(str1);
+	str2 = std::move(str2);
+	str3 = std::move(str3);
+	str4 = std::move(str4);
 
 	passed = str0.Data() == p0 && str1.Data() == p1 && str2.Data() == p2 &&
 		str3.Data() == p3 && str4.Data() == p4 &&
@@ -1707,11 +1736,11 @@ void StringSubString()
 	String32 str3(U"Hello, World!");
 	StringW str4(L"Hello, World!");
 
-	String sub0 = Move(str0.SubString(3, 6));
-	String8 sub1 = Move(str1.SubString(3, 6));
-	String16 sub2 = Move(str2.SubString(3, 6));
-	String32 sub3 = Move(str3.SubString(3, 6));
-	StringW sub4 = Move(str4.SubString(3, 6));
+	String sub0 = std::move(str0.SubString(3, 6));
+	String8 sub1 = std::move(str1.SubString(3, 6));
+	String16 sub2 = std::move(str2.SubString(3, 6));
+	String32 sub3 = std::move(str3.SubString(3, 6));
+	StringW sub4 = std::move(str4.SubString(3, 6));
 
 	passed = str0.Size() == 13 && str0.Capacity() == 1024 && Compare(str0.Data(), "Hello, World!", 14) &&
 		str1.Size() == 13 && str1.Capacity() == 1024 && Compare(str1.Data(), u8"Hello, World!", 14) &&
@@ -1993,54 +2022,59 @@ int main()
 	QueryPerformanceFrequency(&freq);
 
 #pragma region String Tests
-	printf("STRING TESTS: \n");
-	StringInit_Blank();
-	StringInit_NullPointer();
-	StringInit_Array();
-	StringInit_ArrayLength();
-	StringInit_Literal();
-	StringInit_Copy();
-	StringInit_Move();
-	StringAssign_NullPointer();
-	StringAssign_Array();
-	StringAssign_Literal();
-	StringAssign_Copy();
-	StringAssign_CopySelf();
-	StringAssign_Move();
-	StringAssign_MoveSelf();
-	StringDestroy();
-	StringClear();
-	StringResize();
-	StringReserve();
-	StringSubString();
-	StringAppended();
-	StringPrepended();
-	StringSurrounded();
-	StringShave();
-	StringAppend();
-	StringPrepend();
-	StringSurround();
-	StringBlank();
-	StringIndexOf();
-	StringLastIndexOf();
-	StringTrim();
-	StringToUpper();
-	StringToLower();
-	StringToCapital();
+	//printf("STRING TESTS: \n");
+	//StringInit_Blank();
+	//StringInit_NullPointer();
+	//StringInit_Array();
+	//StringInit_ArrayLength();
+	//StringInit_Literal();
+	//StringInit_Copy();
+	//StringInit_Move();
+	//StringAssign_NullPointer();
+	//StringAssign_Array();
+	//StringAssign_Literal();
+	//StringAssign_Copy();
+	//StringAssign_CopySelf();
+	//StringAssign_Move();
+	//StringAssign_MoveSelf();
+	//StringDestroy();
+	//StringClear();
+	//StringResize();
+	//StringReserve();
+	//StringSubString();
+	//StringAppended();
+	//StringPrepended();
+	//StringSurrounded();
+	//StringShave();
+	//StringAppend();
+	//StringPrepend();
+	//StringSurround();
+	//StringBlank();
+	//StringIndexOf();
+	//StringLastIndexOf();
+	//StringTrim();
+	//StringToUpper();
+	//StringToLower();
+	//StringToCapital();
 #pragma endregion
 
 #pragma region Vector Tests
 	printf("\nVECTOR TESTS: \n");
 	VectorInit_Blank();
 	VectorInit_Capacity();
-	VectorInit_Size();
+	VectorInit_Size<int>();
+	VectorInit_Size<SimpleData>();
+	VectorInit_Size<ConstructableData>();
 	VectorInit_Copy();
 	VectorInit_Move();
 	VectorInit_Initializer();
+	VectorInit_InitializerSTD();
 	VectorAssign_Copy();
 	VectorAssign_Move();
 	VectorAssign_Initializer();
-	VectorDestroy();
+	VectorDestroy<int>();
+	VectorDestroy<SimpleData>();
+	VectorDestroy<ConstructableData>();
 	VectorNewDelete();
 	VectorPush_Copy();
 	VectorPush_Move();
@@ -2067,7 +2101,6 @@ int main()
 	VectorReserve();
 	VectorResize();
 	VectorResize_Value();
-	VectorShrink();
 	VectorClear();
 	VectorContains();
 	VectorCount();

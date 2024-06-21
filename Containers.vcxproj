@@ -139,7 +139,6 @@
     <ClInclude Include="Queue.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="String.hpp" />
-    <ClInclude Include="TypeTraits.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Containers-Vector.ixx" />

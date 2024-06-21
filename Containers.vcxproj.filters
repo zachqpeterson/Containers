@@ -38,9 +38,6 @@
     <ClInclude Include="String.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TypeTraits.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ContainerDefines.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
