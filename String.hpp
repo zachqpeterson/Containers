@@ -31,13 +31,6 @@ template <class Type> concept NonStringPointer = IsNonStringPointer<Type>;
 template <class Type> inline constexpr bool IsNonStringClass = std::is_class_v<Type> && !IsStringType<Type>;
 template <class Type> concept NonStringClass = IsNonStringClass<Type>;
 
-template<Character C>
-void Copy(C* dst, const C* src, U64 length)
-{
-	constexpr U64 size = sizeof(C);
-	memcpy(dst, src, length * size);
-}
-
 //TODO:
 //Formatting
 //

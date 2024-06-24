@@ -47,3 +47,54 @@ static inline constexpr F32 F32_MAX = 3.402823466e+38F;			//Maximum value of a 3
 static inline constexpr F32 F32_MIN = 1.175494351e-38F;			//Minimum value of a 32-bit float
 static inline constexpr F64 F64_MAX = 1.7976931348623158e+308;	//Maximum value of a 64-bit float
 static inline constexpr F64 F64_MIN = 2.2250738585072014e-308;	//Minimum value of a 64-bit float
+
+#include <intrin.h>
+#include <string.h>
+
+template<class Type>
+static inline Type* Copy(Type* dst, const Type* src, U64 count)
+{
+	if (dst == src) { return dst; }
+
+	if (dst > src && dst < src + count)
+	{
+		return (Type*)memmove(dst, src, count * sizeof(Type));
+	}
+
+	//TODO: for copies of types large than 8 bytes, we could copy 8 bytes until the size left is less than 8, then regular byte copy
+
+	if constexpr (sizeof(Type) % 8 == 0)
+	{
+		constexpr const U64 multi = sizeof(Type) / 8;
+		U64* d = (U64*)dst;
+		const U64* s = (const U64*)src;
+		U64 n = count * multi;
+		__movsq(d, s, n);
+	}
+	else if constexpr (sizeof(Type) % 4 == 0)
+	{
+		constexpr const U64 multi = sizeof(Type) / 4;
+		UL32* d = (UL32*)dst;
+		const UL32* s = (const UL32*)src;
+		U64 n = count * multi;
+		__movsd(d, s, n);
+	}
+	else if constexpr (sizeof(Type) % 2 == 0)
+	{
+		constexpr const U64 multi = sizeof(Type) / 2;
+		U16* d = (U16*)dst;
+		const U16* s = (const U16*)src;
+		U64 n = count * multi;
+		__movsw(d, s, n);
+	}
+	else
+	{
+		constexpr const U64 multi = sizeof(Type);
+		U8* d = (U8*)dst;
+		const U8* s = (const U8*)src;
+		U64 n = count * multi;
+		__movsb(d, s, n);
+	}
+
+	return dst;
+}

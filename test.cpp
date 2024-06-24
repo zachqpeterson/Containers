@@ -2017,9 +2017,148 @@ void StringToCapital()
 
 #pragma endregion
 
+void CopyTestString()
+{
+	U64 length = Length("Hello, World!");
+	const char* str0 = "Hello, World!";
+	char* str1 = new char[length];
+
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Copy(str1, str0, length);
+
+	passed = Compare(str1, "Hello, World!", length);
+
+	/*** END TEST ***/
+	END_TEST;
+
+	delete[] str1;
+}
+
+void CopyTestStringOverlap()
+{
+	U64 length = Length("Hello, World!");
+	const char* str0 = "Hello, World!";
+	char* str1 = new char[length];
+	Copy(str1, str0, length);
+
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Copy(str1 + 3, str1, 5);
+
+	passed = Compare(str1, "HelHelloorld!", length);
+
+	/*** END TEST ***/
+	END_TEST;
+
+	delete[] str1;
+}
+
+void CopyLargeBytes()
+{
+	U64 length = 1000000;
+	U8* data0 = new U8[length];
+	U8* data1 = new U8[length];
+
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Copy(data1, data0, length);
+
+	passed = true;
+
+	/*** END TEST ***/
+	END_TEST;
+
+	delete[] data0;
+	delete[] data1;
+}
+
+void CopyLargeU64s()
+{
+	U64 length = 125000;
+	U64* data0 = new U64[length];
+	U64* data1 = new U64[length];
+
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Copy(data1, data0, length);
+
+	passed = true;
+
+	/*** END TEST ***/
+	END_TEST;
+
+	delete[] data0;
+	delete[] data1;
+}
+
+#pragma pack(1)
+struct OddSize
+{
+	U64 ull;
+	U32 ul;
+	U8 ub;
+};
+#pragma pop
+
+void CopyLargeOdds()
+{
+	U64 length = 76923;
+	OddSize* data0 = new OddSize[length];
+	OddSize* data1 = new OddSize[length];
+
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Copy(data1, data0, length);
+
+	passed = true;
+
+	/*** END TEST ***/
+	END_TEST;
+
+	delete[] data0;
+	delete[] data1;
+}
+
+void CopySelf()
+{
+	U64 length = 1000000;
+	U8* data0 = new U8[length];
+
+	BEGIN_TEST;
+
+	/*** START TEST ***/
+
+	Copy(data0, data0, length);
+
+	passed = true;
+
+	/*** END TEST ***/
+	END_TEST;
+
+	delete[] data0;
+}
+
 int main()
 {
 	QueryPerformanceFrequency(&freq);
+
+	CopyTestString();
+	CopyTestStringOverlap();
+	CopyLargeBytes();
+	CopyLargeU64s();
+	CopyLargeOdds();
+	CopySelf();
 
 #pragma region String Tests
 	//printf("STRING TESTS: \n");
